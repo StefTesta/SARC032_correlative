@@ -30,20 +30,66 @@ library(compositions)
 library(tidyplots)
 
 # Load data ----
-flow_results_filtered <- read_excel("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_tables.xlsx", 
-                                    sheet = 7)
+flow_results_filtered <- read_excel("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx", 
+                                    sheet = 4)
 colnames(flow_results_filtered) <- flow_results_filtered[2, ]
 flow_results_filtered <- flow_results_filtered[-c(1,2) ,]
 flow_results_filtered <- as.data.frame(flow_results_filtered)
 
-SIC_and_SE_assignments <- read_excel("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_tables.xlsx", 
-                                     sheet = 10)
+SIC_and_SE_assignments <- read_excel("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx", 
+                                     sheet = 1)
 SIC_and_SE_assignments <- SIC_and_SE_assignments[-c(1), ]
 colnames(SIC_and_SE_assignments) <- SIC_and_SE_assignments[1, ]
 SIC_and_SE_assignments <- SIC_and_SE_assignments[-c(1), ]
 SIC_and_SE_assignments <- as.data.frame(SIC_and_SE_assignments)
-SIC_and_SE_assignments$`DFS time (days)` <- as.numeric(SIC_and_SE_assignments$`DFS time (days)`)
+SIC_and_SE_assignments$`DFS Time (Days)` <- as.numeric(SIC_and_SE_assignments$`DFS Time (Days)`)
 SIC_and_SE_assignments$`Percent Necrosis` <- as.numeric(SIC_and_SE_assignments$`Percent Necrosis`)
+
+src_lookup <- c(
+  "803-072"="SRC83",  "001-074"="SRC82",  "022-059"="SRC75",  "004-058"="SRC74",
+  "004-045"="SRC68",  "022-046"="SRC67",  "022-044"="SRC66",  "001-041"="SRC65",
+  "092-037"="SRC64",  "004-040"="SRC63",  "005-027"="SRC55",  "803-029"="SRC54",
+  "802-103"="SRC535", "802-149"="SRC532", "802-148"="SRC531", "005-135"="SRC530",
+  "091-018"="SRC53",  "076-102"="SRC529", "076-146"="SRC527", "801-151"="SRC523",
+  "802-132"="SRC521", "802-120"="SRC520", "001-023"="SRC52",  "022-025"="SRC51",
+  "022-026"="SRC50",  "029-021"="SRC48",  "005-015"="SRC47",  "004-107"="SRC464",
+  "004-112"="SRC463", "001-134"="SRC462", "005-147"="SRC461", "029-020"="SRC46",
+  "801-129"="SRC459", "802-117"="SRC458", "802-122"="SRC457", "092-144"="SRC456",
+  "802-108"="SRC454", "802-138"="SRC452", "098-155"="SRC450", "048-016"="SRC45",
+  "801-141"="SRC449", "092-140"="SRC447", "001-017"="SRC44",  "005-013"="SRC42",
+  "071-009"="SRC40",  "091-010"="SRC39",  "022-012"="SRC38",  "001-131"="SRC364",
+  "092-124"="SRC362", "091-006"="SRC36",  "015-002"="SRC35",  "001-004"="SRC34",
+  "071-003"="SRC33",  "801-042"="SRC279","051-094"="SRC278","051-087"="SRC276",
+  "802-086"="SRC275","802-019"="SRC274","802-051"="SRC273","802-050"="SRC271",
+  "802-063"="SRC269","802-062"="SRC267","802-071"="SRC265","802-081"="SRC264",
+  "802-075"="SRC263","802-080"="SRC261","802-085"="SRC260","801-097"="SRC258",
+  "802-056"="SRC256","802-096"="SRC255","802-070"="SRC254","016-098"="SRC251",
+  "051-092"="SRC250","005-109"="SRC248","016-114"="SRC247","004-110"="SRC246",
+  "016-104"="SRC245","004-090"="SRC221","016-095"="SRC220","002-083"="SRC217",
+  "005-111"=NA_character_,"016-043"=NA_character_,
+  "022-152"="SRC526","802-100"="SRC455","092-142"="SRC451","001-014"="SRC43",
+  "001-128"="SRC365","802-078"="SRC262","022-105"="SRC244","001-076"="SRC84",
+  "803-069"="SRC81","001-066"="SRC80","001-038"="SRC62","015-028"="SRC56",
+  "802-143"="SRC533","076-068"="SRC528","802-150"="SRC524","048-022"="SRC49",
+  "034-137"="SRC374","092-126"="SRC363","022-127"="SRC361","048-119"="SRC360",
+  "802-052"="SRC268","001-115"="SRC259","001-089"="SRC219","071-073"="SRC79",
+  "001-067"="SRC78","092-049"="SRC73","091-055"="SRC72","071-034"="SRC60",
+  "029-033"="SRC59","022-032"="SRC58","001-030"="SRC57","802-139"="SRC536",
+  "802-153"="SRC534","802-121"="SRC522","802-130"="SRC453","005-007"="SRC41",
+  "092-008"="SRC37","801-088"="SRC277","051-057"="SRC272","051-060"="SRC270",
+  "051-077"="SRC266","016-116"="SRC257","802-079"="SRC253","001-101"="SRC223",
+  "029-099"="SRC222"
+)
+
+SIC_and_SE_assignments$Patient <- as.character(SIC_and_SE_assignments$Patient)
+
+if (!"SRC code" %in% names(SIC_and_SE_assignments)) {
+  SIC_and_SE_assignments[["SRC code"]] <- unname(src_lookup[ SIC_and_SE_assignments$Patient ])
+} else {
+  na_idx <- is.na(SIC_and_SE_assignments[["SRC code"]])
+  SIC_and_SE_assignments[["SRC code"]][na_idx] <-
+    unname(src_lookup[ SIC_and_SE_assignments$Patient[na_idx] ])
+}
 
 # Figure 3A ----- ----
 cd4_clusters <- c(
@@ -191,9 +237,8 @@ data_for_analysis <- tumor_long %>%
   inner_join(sample_annotation, by = "Sample")
 
 data_for_analysis <- data_for_analysis %>% 
-  left_join(sarc32_outcome[, c("SRC", "DFS event", "DFS time (days)", 
-                               "OS event", "OS time (days)")], 
-            by = c("Sample" = "SRC"))
+  left_join(SIC_and_SE_assignments[, c("SRC code", "DFS Event", "DFS Time (Days)")], 
+            by = c("Sample" = "SRC code"))
 
 data_for_analysis_cd4 <- data_for_analysis
 
@@ -235,11 +280,11 @@ test_results <- data_for_analysis_cd4 %>%
 
 # Figure 3C ----
 SE1_patients <- SIC_and_SE_assignments %>% 
-  filter(`Sarcoma Ecotype Assignment - Pre-treatment` == "E1") %>% 
+  filter(`Sarcoma Ecotype Assignment` == "SE1") %>% 
   pull(Patient)
 
 SICE_patients <- SIC_and_SE_assignments %>% 
-  filter(`Sarcoma Immune Class - Pre-treatment` == "E") %>% 
+  filter(`Sarcoma Immune Class` == "E") %>% 
   pull(Patient)
 
 macro_clusters_flow_heatmap_df_SE1_SICE <- macro_clusters_flow_heatmap_df[, colnames(macro_clusters_flow_heatmap_df) %in% unique(c(SE1_patients, SICE_patients))]
@@ -250,7 +295,7 @@ tumor_long <- as.data.frame(macro_clusters_flow_heatmap_df_SE1_SICE) %>%
 # create  annotation 
 column_annotation <- data.frame(samples = colnames(macro_clusters_flow_heatmap_df_SE1_SICE))
 column_annotation$Arm <- NA
-column_annotation$Arm[column_annotation$samples %in% flow_results_macro_clusters[flow_results_macro_clusters$`Treatment Arm` == "Experimental", ]$SRC] <- "Experimental"
+column_annotation$Arm[column_annotation$samples %in% flow_results_macro_clusters[flow_results_macro_clusters$`Treatment Arm` == "Experimental", ]$Patient] <- "Experimental"
 column_annotation$Arm[is.na(column_annotation$Arm)] <- "Control"
 
 column_annotation <- column_annotation %>% 
@@ -272,13 +317,13 @@ sample_annotation <- rownames_to_column(sample_annotation, var = "Sample")
 
 sample_annotation <- sample_annotation %>% 
   left_join(SIC_and_SE_assignments[, c("Patient", 
-                                       "Sarcoma Ecotype Assignment - Pre-treatment", 
-                                       "Sarcoma Immune Class - Pre-treatment")], 
+                                       "Sarcoma Ecotype Assignment", 
+                                       "Sarcoma Immune Class")], 
             by = c("Sample" = "Patient"))
 
 sample_annotation$SICE_vs_SE1_classifier <- NA
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment - Pre-treatment` == "E1"] <- "SE1"
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class - Pre-treatment` == "E"] <- "SICE"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment` == "SE1"] <- "SE1"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class` == "E"] <- "SICE"
 sample_annotation$split_factor <- paste(sample_annotation$Arm, sample_annotation$SICE_vs_SE1_classifier, sep = "_")
 sample_annotation$split_factor <- as.factor(sample_annotation$split_factor)
 sample_annotation$split_factor <- factor(sample_annotation$split_factor, 
@@ -351,8 +396,8 @@ sample_annotation <- rownames_to_column(sample_annotation, var = "Sample")
 
 sample_annotation <- sample_annotation %>% 
   left_join(SIC_and_SE_assignments[, c("Patient", 
-                                       "Sarcoma Ecotype Assignment - Pre-treatment", 
-                                       "Sarcoma Immune Class - Pre-treatment")], 
+                                       "Sarcoma Ecotype Assignment", 
+                                       "Sarcoma Immune Class")], 
             by = c("Sample" = "Patient"))
 
 sample_annotation$SICE_vs_SE1_classifier <- NA
@@ -601,8 +646,6 @@ test_results <- data_for_analysis_cd8 %>%
   add_significance("p.adj") %>%
   select(CellType, group1, group2, p, p.adj, p.adj.signif)
 
-
-
 # Figure 3E ----
 macro_clusters_flow_heatmap_df <- as.data.frame(macro_clusters_flow_heatmap_df)
 macro_clusters_flow_heatmap_df_SE1_SICE <- macro_clusters_flow_heatmap_df[, colnames(macro_clusters_flow_heatmap_df) %in% unique(c(SE1_patients, SICE_patients))]
@@ -634,13 +677,13 @@ sample_annotation <- rownames_to_column(sample_annotation, var = "Sample")
 
 sample_annotation <- sample_annotation %>% 
   left_join(SIC_and_SE_assignments[, c("Patient", 
-                                       "Sarcoma Ecotype Assignment - Pre-treatment", 
-                                       "Sarcoma Immune Class - Pre-treatment")], 
+                                       "Sarcoma Ecotype Assignment", 
+                                       "Sarcoma Immune Class")], 
             by = c("Sample" = "Patient"))
 
 sample_annotation$SICE_vs_SE1_classifier <- NA
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment - Pre-treatment` == "E1"] <- "SE1"
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class - Pre-treatment` == "E"] <- "SICE"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment` == "SE1"] <- "SE1"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class` == "E"] <- "SICE"
 sample_annotation$split_factor <- paste(sample_annotation$Arm, sample_annotation$SICE_vs_SE1_classifier, sep = "_")
 sample_annotation$split_factor <- as.factor(sample_annotation$split_factor)
 sample_annotation$split_factor <- factor(sample_annotation$split_factor, 
@@ -680,7 +723,6 @@ pdf(".../flow_CD8_non_t_regs_clusters_SE1_SICE.pdf",
 draw(ht)
 dev.off()
 
-
 # Figure 3F ----
 macro_clusters_flow_heatmap_df <- as.data.frame(macro_clusters_flow_heatmap_df)
 macro_clusters_flow_heatmap_df_SE1_SICE <- macro_clusters_flow_heatmap_df[, colnames(macro_clusters_flow_heatmap_df) %in% unique(c(SE1_patients, SICE_patients))]
@@ -712,13 +754,13 @@ sample_annotation <- rownames_to_column(sample_annotation, var = "Sample")
 
 sample_annotation <- sample_annotation %>% 
   left_join(SIC_and_SE_assignments[, c("Patient", 
-                                       "Sarcoma Ecotype Assignment - Pre-treatment", 
-                                       "Sarcoma Immune Class - Pre-treatment")], 
+                                       "Sarcoma Ecotype Assignment", 
+                                       "Sarcoma Immune Class")], 
             by = c("Sample" = "Patient"))
 
 sample_annotation$SICE_vs_SE1_classifier <- NA
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment - Pre-treatment` == "E1"] <- "SE1"
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class - Pre-treatment` == "E"] <- "SICE"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment` == "E1"] <- "SE1"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class` == "E"] <- "SICE"
 
 data_for_analysis <- tumor_long %>%
   inner_join(sample_annotation, by = "Sample")
@@ -762,8 +804,6 @@ test_results <- data_for_analysis %>%
   adjust_pvalue(method = "BH") %>%
   add_significance("p.adj") %>%
   select(CellType, SICE_vs_SE1_classifier, group1, group2, p, p.adj, p.adj.signif)
-
-
 
 # Figure 3G ----
 cox_flow_results <- fread("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/Flow_cytometry/Cox_analysis_flow.csv")
@@ -1023,7 +1063,6 @@ test_results <- data_for_analysis_tregs %>%
   add_significance("p.adj") %>%
   select(CellType, group1, group2, p, p.adj, p.adj.signif)
 
-
 # Figure Supplemental 2E ----
 macro_clusters_flow_heatmap_df <- as.data.frame(macro_clusters_flow_heatmap_df)
 macro_clusters_flow_heatmap_df_SE1_SICE <- macro_clusters_flow_heatmap_df[, colnames(macro_clusters_flow_heatmap_df) %in% unique(c(SE1_patients, SICE_patients))]
@@ -1055,13 +1094,13 @@ sample_annotation <- rownames_to_column(sample_annotation, var = "Sample")
 
 sample_annotation <- sample_annotation %>% 
   left_join(SIC_and_SE_assignments[, c("Patient", 
-                                       "Sarcoma Ecotype Assignment - Pre-treatment", 
-                                       "Sarcoma Immune Class - Pre-treatment")], 
+                                       "Sarcoma Ecotype Assignment", 
+                                       "Sarcoma Immune Class")], 
             by = c("Sample" = "Patient"))
 
 sample_annotation$SICE_vs_SE1_classifier <- NA
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment - Pre-treatment` == "E1"] <- "SE1"
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class - Pre-treatment` == "E"] <- "SICE"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment` == "E1"] <- "SE1"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class` == "E"] <- "SICE"
 sample_annotation$split_factor <- paste(sample_annotation$Arm, sample_annotation$SICE_vs_SE1_classifier, sep = "_")
 sample_annotation$split_factor <- as.factor(sample_annotation$split_factor)
 sample_annotation$split_factor <- factor(sample_annotation$split_factor, 
@@ -1133,13 +1172,13 @@ sample_annotation <- rownames_to_column(sample_annotation, var = "Sample")
 
 sample_annotation <- sample_annotation %>% 
   left_join(SIC_and_SE_assignments[, c("Patient", 
-                                       "Sarcoma Ecotype Assignment - Pre-treatment", 
-                                       "Sarcoma Immune Class - Pre-treatment")], 
+                                       "Sarcoma Ecotype Assignment", 
+                                       "Sarcoma Immune Class")], 
             by = c("Sample" = "Patient"))
 
 sample_annotation$SICE_vs_SE1_classifier <- NA
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment - Pre-treatment` == "E1"] <- "SE1"
-sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class - Pre-treatment` == "E"] <- "SICE"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Ecotype Assignment` == "E1"] <- "SE1"
+sample_annotation$SICE_vs_SE1_classifier[sample_annotation$`Sarcoma Immune Class` == "E"] <- "SICE"
 
 data_for_analysis <- tumor_long %>%
   inner_join(sample_annotation, by = "Sample")
@@ -1179,10 +1218,6 @@ test_results <- data_for_analysis %>%
   select(CellType, SICE_vs_SE1_classifier, 
          group1, group2, 
          p, p.adj, p.adj.signif)
-
-
-
-
 
 # Figure 4A ----
 set.seed(123) 
@@ -1387,7 +1422,7 @@ phenotype_CyTOF$Visit <- factor(
 
 # remove non evaluable patients
 phenotype_CyTOF <- phenotype_CyTOF %>% 
-  filter(PatientID %in% evaluable_patients_cytof)
+  filter(`SRC code` %in% evaluable_patients)
 
 percent_all_cells <- percent_all_cells[, colnames(percent_all_cells) %in% phenotype_CyTOF$Sample]
 
@@ -1437,7 +1472,7 @@ line_blood <- ggline(
   data = percent_all_cells_long,
   x = "Visit",
   y = "Abundance",
-  color = "Arm",
+  color = "Treatment Arm",
   palette = c("Control" = "#9D1536", "Experimental" = "#0093AF"),
   facet.by = "CellType",
   add = "mean_se",      
@@ -1454,6 +1489,7 @@ ggsave(line_blood,
        filename = '/.../time_series_PBMCs_CLR.pdf', 
        units = "cm", width = 32, height = 25)
 
+percent_all_cells_long$Arm <- percent_all_cells_long$`Treatment Arm`
 
 # Wilcoxon test - between Arms comparisons 
 stats_table_between_arms <- compare_means(
@@ -1522,7 +1558,7 @@ for (cell in cell_types) {
     
     # Combined analysis (all samples together)
     if (length(unique(subset_data$Abundance)) > 1) {
-      cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Abundance, data = subset_data)
+      cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = subset_data)
       
       summary_cox <- summary(cox_model)
       HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -1552,7 +1588,7 @@ for (cell in cell_types) {
       arm_data <- subset(subset_data, Arm == arm)
       
       if (length(unique(arm_data$Abundance)) > 1) {
-        cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Abundance, data = arm_data)
+        cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = arm_data)
         
         summary_cox <- summary(cox_model)
         HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -1746,7 +1782,7 @@ line_t_cells <- ggline(
   data = percent_T_cells_long,
   x = "Visit",
   y = "Abundance",
-  color = "Arm",
+  color = "Treatment Arm",
   palette = c("Control" = "#9D1536", "Experimental" = "#0093AF"),
   facet.by = "CellType",
   add = "mean_se",      
@@ -1763,6 +1799,8 @@ line_t_cells <- ggline(
 ggsave(line_t_cells, 
        filename = '/Users/stefanotesta/Desktop/Moding Lab/SARC_32/CyTOF/plots/time_series_T_cells_CLR.pdf', 
        units = "cm", width = 32.5, height = 35.5)
+
+percent_T_cells_long$Arm <- percent_T_cells_long$`Treatment Arm`
 
 # Wilcoxon test between Arms 
 stats_table_between_arms <- compare_means(
@@ -1830,7 +1868,7 @@ for (cell in cell_types) {
     
     # Combined analysis (all samples together)
     if (length(unique(subset_data$Abundance)) > 1) {
-      cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Abundance, data = subset_data)
+      cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = subset_data)
       
       summary_cox <- summary(cox_model)
       HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -1860,7 +1898,7 @@ for (cell in cell_types) {
       arm_data <- subset(subset_data, Arm == arm)
       
       if (length(unique(arm_data$Abundance)) > 1) {
-        cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Abundance, data = arm_data)
+        cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = arm_data)
         
         summary_cox <- summary(cox_model)
         HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -2098,7 +2136,7 @@ for (cell in cell_types) {
   subset_data <- subset(cibersortx_long_T1, Cell_Type == cell)
   
   if (length(unique(subset_data$Value)) > 1) {
-    cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Value, data = subset_data)
+    cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Value, data = subset_data)
     
     summary_cox <- summary(cox_model)
     HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -2127,7 +2165,7 @@ for (cell in cell_types) {
     arm_data <- subset(subset_data, `Treatment Arm` == arm)
     
     if (length(unique(arm_data$Value)) > 1) {
-      cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Value, data = arm_data)
+      cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Value, data = arm_data)
       
       summary_cox <- summary(cox_model)
       HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -2269,10 +2307,10 @@ tumor_long <- as.data.frame(T1_CLR) %>%
 tumor_long$Sample <- gsub("_T1", "", tumor_long$Sample)
 
 data_for_analysis <- tumor_long %>%
-  inner_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Immune Class - Pre-treatment")],
+  inner_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Immune Class")],
              by = c("Sample" = "SRC code"))
 
-colnames(data_for_analysis)[colnames(data_for_analysis) == "Sarcoma Immune Class - Pre-treatment"] <- "Sarcoma Immune Class"
+colnames(data_for_analysis)[colnames(data_for_analysis) == "Sarcoma Immune Class"] <- "Sarcoma Immune Class"
 
 # Kruskal-Wallis test 
 kw_results <- data_for_analysis %>%
@@ -2334,15 +2372,15 @@ tumor_long <- as.data.frame(T1_CLR) %>%
 tumor_long$Sample <- gsub("_T1", "", tumor_long$Sample)
 
 data_for_analysis <- tumor_long %>%
-  inner_join(ecotyper_data[ecotyper_data$patient %in% evaluable_patients, c("patient", "ecotype_assignment")],
-             by = c("Sample" = "patient"))
+  inner_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Ecotype Assignment")],
+             by = c("Sample" = "SRC code"))
 
-data_for_analysis <- data_for_analysis[!(is.na(data_for_analysis$ecotype_assignment)), ]
+data_for_analysis <- data_for_analysis[!(is.na(data_for_analysis$`Sarcoma Ecotype Assignment`)), ]
 
 # Kruskal-Wallis test 
 kw_results <- data_for_analysis %>%
   group_by(CellType) %>%
-  kruskal_test(CLR ~ ecotype_assignment) %>%
+  kruskal_test(CLR ~ `Sarcoma Ecotype Assignment`) %>%
   adjust_pvalue(method = "BH") %>%
   rename(p_value = p, adj_p_value = p.adj)
 
@@ -2352,6 +2390,7 @@ significant_cells_ecotypes <- kw_results %>%
   pull(CellType)
 
 # Post-hoc pairwise Dunn's test 
+data_for_analysis$ecotype_assignment <- data_for_analysis$`Sarcoma Ecotype Assignment`
 pairwise_np <- data_for_analysis %>%
   group_by(CellType) %>%
   dunn_test(CLR ~ ecotype_assignment, p.adjust.method = "BH") %>%
@@ -2361,12 +2400,14 @@ sig_np <- pairwise_np %>% filter(signif == "yes")
 selected_cells <- union(significant_cells_ecotypes, unique(sig_np$CellType))
 
 # Specify the comparisons you want
-my_comparisons <- list( c("E2", "E1"), c("E3", "E2"), c("E3", "E1"))
+my_comparisons <- list( c("SE2", "SE1"), c("SE3", "SE2"), c("SE3", "SE1"))
 
-ecotyper_palette = c("E1" = "#F06180", "E2" = "#0F9ABE", "E3" = "#60C1A5")
+ecotyper_palette = c("SE1" = "#F06180", "SE2" = "#0F9ABE", "SE3" = "#60C1A5")
 
 swarm_violin_eco <- ggplot(
-  data_for_analysis %>% filter(CellType %in% setdiff(selected_cells, "CD4+ Tctl")),
+  data_for_analysis %>% 
+    filter(CellType %in% setdiff(selected_cells, "CD4+ Tctl")) %>% 
+    filter(`Sarcoma Ecotype Assignment` != "NA"),
   aes(x = ecotype_assignment, y = CLR, fill = ecotype_assignment)
 ) +
   geom_violin(alpha = 0.2, trim = TRUE, scale = "width") +
@@ -2446,7 +2487,7 @@ for (cell in cell_types) {
   
   # Combined analysis (all samples together)
   if (length(unique(subset_data$Value)) > 1) {
-    cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Value, data = subset_data)
+    cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Value, data = subset_data)
     
     summary_cox <- summary(cox_model)
     HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -2475,7 +2516,7 @@ for (cell in cell_types) {
     arm_data <- subset(subset_data, `Treatment Arm` == arm)
     
     if (length(unique(arm_data$Value)) > 1) {
-      cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Value, data = arm_data)
+      cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Value, data = arm_data)
       
       summary_cox <- summary(cox_model)
       HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -2711,6 +2752,36 @@ ggsave(non_immune_selected,
        filename = ".../T2_T1_Non_immune_selected_CLR.pdf",
        units = "cm", width = 15, height = 15)
 
+immunecells_selected_toplot <- c("CD8+ Early Activation",
+                                 "CD4+ Tcm", "CD4+ Tfh", "M2 SELENOP+ SLC40A1+",
+                                 "Immunoregulatroy PMNs")
+
+immune_selected <- ggplot(
+  cibersortx_long_cpm_tr4[cibersortx_long_cpm_tr4$Cell_Type %in% immunecells_selected_toplot, ],
+  aes(x = Time_Point, y = Value, fill = Time_Point)
+) +
+  geom_violin(alpha = 0.3, trim = FALSE, scale = "width") +
+  geom_boxplot(width = 0.2, outlier.shape = NA) + # Avoid outliers overlapping violins
+  geom_line(aes(group = Sample), color = "black", alpha = 0.2) + # Add connecting lines
+  geom_point(aes(group = Sample), size = 0.2) + # Add points for T1 and T2
+  labs(
+    title = "",
+    x = "",
+    y = "CIBERSORTx Fraction"
+  ) +
+  theme_pubr(border = T) +
+  geom_signif(comparisons = list(c("T1", "T2")), test = "wilcox.test") +
+  labs(fill = "Time Point") +
+  facet_grid(`Treatment Arm` ~ Cell_Type,
+             scales="free_y",
+             switch = "y") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_manual(values = c("T1" = "#396CAE", "T2" = "#FBBF85"))
+
+ggsave(immune_selected, 
+       filename = "/.../T2_T1_immune_selected_CLR.pdf",
+       units = "cm", width = 24, height = 15)
+
 # Figure 6A ----
 necrosis_evaluable_wilcox <- SIC_and_SE_assignments %>% 
   filter(!(is.na(SIC_and_SE_assignments$`Percent Necrosis`))) %>% 
@@ -2719,7 +2790,7 @@ necrosis_evaluable_wilcox <- SIC_and_SE_assignments %>%
     aes(x = `Treatment Arm`, y = necrosis, fill = `Treatment Arm`)
   ) + 
   geom_boxplot(width = .50, outlier.shape = NA, alpha = .5) +
-  geom_point(aes(group = `SRC code`), shape = 21, size = 1.5, stroke = .5, alpha = 1) +
+  geom_point(aes(group = `Patient`), shape = 21, size = 1.5, stroke = .5, alpha = 1) +
   scale_fill_manual(values = c("Experimental" = "#0093af", "Control" = "#9d1536")) + 
   stat_compare_means(
     comparisons = list( c("Control", "Experimental")),
@@ -2737,7 +2808,7 @@ ggsave(necrosis_evaluable_wilcox,
 path_data_filtered <- SIC_and_SE_assignments %>%
   mutate(necrosis = `Percent Necrosis`) %>% 
   mutate(
-    DFS_event = ifelse(`DFS event` == "Event occurred", 1, 0),
+    DFS_event = ifelse(`DFS Event` == "Event occurred", 1, 0),
     necrosis10    = necrosis / 10,                 
     necrosis_high = ifelse(necrosis >= 95, 1, 0)   
   )
@@ -2765,16 +2836,16 @@ cox_one <- function(dat, time_col, event_col, predictor, covariate_label, arm_la
 
 # DFS
 dfs_rt_results <- bind_rows(
-  cox_one(df_rt,  "DFS time (days)", "DFS_event", "necrosis10",
+  cox_one(df_rt,  "DFS Time (Days)", "DFS_event", "necrosis10",
           "Necrosis after resection (per 10% increase)", "RT Only", "DFS"),
-  cox_one(df_rt,  "DFS time (days)", "DFS_event", "necrosis_high",
+  cox_one(df_rt,  "DFS Time (Days)", "DFS_event", "necrosis_high",
           "% Necrosis \u226595% (vs <95%)",               "RT Only", "DFS")
 )
 
 dfs_exp_results <- bind_rows(
-  cox_one(df_exp, "DFS time (days)", "DFS_event", "necrosis10",
+  cox_one(df_exp, "DFS Time (Days)", "DFS_event", "necrosis10",
           "Necrosis after resection (per 10% increase)", "RT + Pembro", "DFS"),
-  cox_one(df_exp, "DFS time (days)", "DFS_event", "necrosis_high",
+  cox_one(df_exp, "DFS Time (Days)", "DFS_event", "necrosis_high",
           "% Necrosis \u226595% (vs <95%)",               "RT + Pembro", "DFS")
 )
 
@@ -2824,34 +2895,24 @@ p_dfs_sq <- p_dfs_sq + theme_pubr(border = T)
 
 
 # Figure 6F ----
-ecotype_abundance <- read_excel('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_tables.xlsx', 
-                                sheet = 11)
+ecotype_abundance <- read_excel('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx', 
+                                sheet = 12)
 
 colnames(ecotype_abundance) <- ecotype_abundance[2, ]
 ecotype_abundance <- ecotype_abundance[-c(1,2), ]
 ecotype_abundance <- as.data.frame(ecotype_abundance)
 ecotype_abundance$`Sarcoma Ecotype Abundance` <- as.numeric(ecotype_abundance$`Sarcoma Ecotype Abundance`)
 
-df_long <- ecotype_abundance_t1t2_comb %>%
-  as.data.frame() %>% 
-  rownames_to_column(var = "Ecotype") %>% 
-  pivot_longer(
-    -Ecotype,
-    names_to  = "sample",
-    values_to = "abundance"
-  ) %>%
-  # split “SRC33_T1” into patient = SRC33, Time_Point = T1
-  separate(sample, into = c("patient", "Time_Point"), sep = "_") %>%
+df_long <- ecotype_abundance %>%
   mutate(
-    Time_Point = factor(Time_Point, levels = c("T1","T2"))
-  )
+    patient    = Patient,  # or: patient = unname(src_lookup[Patient])
+    Time_Point = `Time Point`,
+    Ecotype    = `Sarcoma Ecotype`,
+    abundance  = `Sarcoma Ecotype Abundance`
+  ) %>%
+  select(patient, Time_Point, Ecotype, abundance, `Treatment Arm`)
 
-df_long <- ecotype_abundance[, c("Sarcoma Ecotype", "Patient", 
-                                 "Time_Point", "Sarcoma Ecotype Abundance", "Treatment Arm")]
-
-colnames(df_long) <- c("Ecotype", "patient", "Time_Point", "abundance", "Arm")
-
-ecotyper_palette = c("E1" = "#F06180", "E2" = "#0F9ABE", "E3" = "#60C1A5")
+ecotyper_palette = c("SE1" = "#F06180", "SE2" = "#0F9ABE", "SE3" = "#60C1A5")
 
 # plot T1 vs T2 ecotype abundance for patients with matched time points 
 violin_change <- df_long %>% 
@@ -2872,7 +2933,7 @@ violin_change <- df_long %>%
   ) +
   theme_pubr(border = T, legend = "right") +
   labs(fill = "SEs") +
-  facet_grid(Arm ~ Ecotype,
+  facet_grid(`Treatment Arm` ~ Ecotype,
              scales="free_y",
              switch = "y") + 
   geom_signif(comparisons = list(c("Pre-treatment", "Post-treatment")), test = "wilcox.test") + 
@@ -2891,7 +2952,7 @@ df_wide_test <- df_long %>%
   group_by(patient) %>%
   filter(n_distinct(Time_Point) == 2) %>%
   ungroup() %>%  
-  select(Ecotype, patient, Time_Point, abundance, Arm) %>%
+  select(Ecotype, patient, Time_Point, abundance, `Treatment Arm`) %>%
   pivot_wider(
     names_from  = Time_Point,
     values_from = abundance
@@ -2900,7 +2961,7 @@ df_wide_test <- df_long %>%
 
 # Run wilcoxon signed-rank per ecotype
 df_wide_test_results <- df_wide_test %>%
-  group_by(Ecotype, Arm) %>%
+  group_by(Ecotype, `Treatment Arm`) %>%
   summarise(
     t_statistic = wilcox.test(`Post-treatment`, `Pre-treatment`, paired = TRUE)$statistic,
     p_value     = wilcox.test(`Post-treatment`, `Pre-treatment`, paired = TRUE)$p.value,
@@ -2911,13 +2972,23 @@ df_wide_test_results$fdr <- p.adjust(df_wide_test_results$p_value, method = "BH"
 
 
 # Figure Supplemental 1D ----
-tcell_inflamed_data <- read_excel('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_tables.xlsx', 
-                                  sheet = 12)
+tcell_inflamed_data <- read_excel('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx', 
+                                  sheet = 2)
 colnames(tcell_inflamed_data) <- tcell_inflamed_data[2,]
 
 tcell_inflamed_data <- tcell_inflamed_data[-c(1,2), ]
 tcell_inflamed_data <- as.data.frame(tcell_inflamed_data)
 tcell_inflamed_data$`T cell-inflamed GEP` <- as.numeric(tcell_inflamed_data$`T cell-inflamed GEP`)
+
+tcell_inflamed_data$Patient <- as.character(tcell_inflamed_data$Patient)
+
+if (!"SRC code" %in% names(tcell_inflamed_data)) {
+  tcell_inflamed_data[["SRC code"]] <- unname(src_lookup[ tcell_inflamed_data$Patient ])
+} else {
+  na_idx <- is.na(tcell_inflamed_data[["SRC code"]])
+  tcell_inflamed_data[["SRC code"]][na_idx] <-
+    unname(src_lookup[ tcell_inflamed_data$Patient[na_idx] ])
+}
 
 tcell_inflamed_data <- tcell_inflamed_data %>% 
   left_join(SIC_and_SE_assignments, by = c("Patient", "SRC code", 
@@ -2939,17 +3010,18 @@ sigs <- "T cell-inflamed GEP"
 # Loop through each cell type
 for (signature in sigs) {
   # Subset data by cell type
+  tcell_inflamed_data$Time_Point <- tcell_inflamed_data$`Time Point`
   subset_data <- tcell_inflamed_data[tcell_inflamed_data$Time_Point == "Pre-treatment", c("SRC code", signature, 
                                                                                "Treatment Arm", 
-                                                                               "DFS event", 
-                                                                               "DFS time (days)")]
+                                                                               "DFS Event", 
+                                                                               "DFS Time (Days)")]
   str(subset_data)
   print(paste("Signature:", signature))
   print(length(subset_data[[signature]]))
   print(dim(subset_data))
   
   # Combined analysis (all samples together)
-  cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ subset_data[[signature]], 
+  cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ subset_data[[signature]], 
                      data = subset_data)
   
   summary_cox <- summary(cox_model)
@@ -2976,7 +3048,7 @@ for (signature in sigs) {
     arm_data <- subset(subset_data, `Treatment Arm` == arm)
     str(arm_data)
     
-    cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ arm_data[[signature]],
+    cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ arm_data[[signature]],
                        data = arm_data)
     
     summary_cox <- summary(cox_model)
@@ -3039,9 +3111,9 @@ p
 Sarcoma_Immune_Class_palette = c("A" = "#1f78b4", "B" = "#a6cee3", "C" = "#33a02c", "D" = "#fdbf6f", "E" = "#e31a1c")
 my_comparisons <- list( c("E", "D"), c("E", "C"), c("E", "B"), c("E", "A"))
 
-ifng_expanded_genes <- ggplot(tcell_inflamed_data %>% filter(!(is.na(`Sarcoma Immune Class - Pre-treatment`)) & Time_Point == "Pre-treatment"), 
-                              aes(x = `Sarcoma Immune Class - Pre-treatment`, y = `T cell-inflamed GEP`,
-                                  fill = `Sarcoma Immune Class - Pre-treatment`)) +
+ifng_expanded_genes <- ggplot(tcell_inflamed_data %>% filter(!(is.na(`Sarcoma Immune Class`)) & Time_Point == "Pre-treatment"), 
+                              aes(x = `Sarcoma Immune Class`, y = `T cell-inflamed GEP`,
+                                  fill = `Sarcoma Immune Class`)) +
   geom_violin(alpha = 0.5, trim = T, scale = "width") +
   geom_quasirandom(shape = 21, size = 1.5, stroke = 0.5, alpha = 1, method = "smiley") +
   scale_fill_manual(values = Sarcoma_Immune_Class_palette) + 
@@ -3050,11 +3122,11 @@ ifng_expanded_genes <- ggplot(tcell_inflamed_data %>% filter(!(is.na(`Sarcoma Im
   stat_compare_means(method = "kruskal.test" ) +
   theme_pubr(legend = "right")
 
-tcell_inflamed_data$Sarcoma_Immune_Class <- tcell_inflamed_data$`Sarcoma Immune Class - Pre-treatment` 
+tcell_inflamed_data$Sarcoma_Immune_Class <- tcell_inflamed_data$`Sarcoma Immune Class` 
 tcell_inflamed_data$IFNy_expanded_avg <- tcell_inflamed_data$`T cell-inflamed GEP`
 
 pairwise_dunn <- tcell_inflamed_data %>% 
-  filter(!(is.na(`Sarcoma Immune Class - Pre-treatment` )) & Time_Point == "Pre-treatment") %>% 
+  filter(!(is.na(`Sarcoma Immune Class` )) & Time_Point == "Pre-treatment") %>% 
   dunn_test(IFNy_expanded_avg ~ Sarcoma_Immune_Class, p.adjust.method = "BH") %>%
   mutate(signif = ifelse(p.adj < 0.05, "yes", "no"))
 
@@ -3062,11 +3134,11 @@ pairwise_dunn <- tcell_inflamed_data %>%
 ecotyper_palette = c("SE1" = "#F06180", "SE2" = "#0F9ABE", "SE3" = "#60C1A5")
 my_comparisons <- list( c("SE2", "SE1"), c("SE3", "SE2"), c("SE3", "SE1"))
 
-tcell_inflamed_data$`Sarcoma Ecotype Assignment - Pre-treatment`[tcell_inflamed_data$`Sarcoma Ecotype Assignment - Pre-treatment` == "NA"] <- NA
+tcell_inflamed_data$`Sarcoma Ecotype Assignment`[tcell_inflamed_data$`Sarcoma Ecotype Assignment` == "NA"] <- NA
 
-ifng_expanded_genes <- ggplot(tcell_inflamed_data %>% filter(!(is.na(`Sarcoma Ecotype Assignment - Pre-treatment`)) & Time_Point == "Pre-treatment"), 
-                              aes(x = `Sarcoma Ecotype Assignment - Pre-treatment`, 
-                                  y = `T cell-inflamed GEP`, fill = `Sarcoma Ecotype Assignment - Pre-treatment`)) +
+ifng_expanded_genes <- ggplot(tcell_inflamed_data %>% filter(!(is.na(`Sarcoma Ecotype Assignment`)) & Time_Point == "Pre-treatment"), 
+                              aes(x = `Sarcoma Ecotype Assignment`, 
+                                  y = `T cell-inflamed GEP`, fill = `Sarcoma Ecotype Assignment`)) +
   geom_violin(alpha = 0.5, trim = T, scale = "width") +
   geom_quasirandom(shape = 21, size = 1.5, stroke = 0.5, alpha = 1, method = "smiley") +
   scale_fill_manual(values = ecotyper_palette) + 
@@ -3075,10 +3147,10 @@ ifng_expanded_genes <- ggplot(tcell_inflamed_data %>% filter(!(is.na(`Sarcoma Ec
   stat_compare_means(method = "kruskal.test" ) +
   theme_pubr(legend = "right")
 
-tcell_inflamed_data$ecotype_assignment <- tcell_inflamed_data$`Sarcoma Ecotype Assignment - Pre-treatment`
+tcell_inflamed_data$ecotype_assignment <- tcell_inflamed_data$`Sarcoma Ecotype Assignment`
 
 pairwise_dunn <- tcell_inflamed_data %>% 
-  filter(!(is.na(`Sarcoma Ecotype Assignment - Pre-treatment`)) & Time_Point == "Pre-treatment") %>% 
+  filter(!(is.na(`Sarcoma Ecotype Assignment`)) & Time_Point == "Pre-treatment") %>% 
   dunn_test(IFNy_expanded_avg ~ ecotype_assignment, p.adjust.method = "BH") %>%
   mutate(signif = ifelse(p.adj < 0.05, "yes", "no"))
 
@@ -3088,7 +3160,6 @@ pairwise_dunn <- tcell_inflamed_data %>%
 tcell_inflamed_data <- tcell_inflamed_data %>%
   mutate(Time_Point = factor(Time_Point, levels = c("Pre-treatment",
                                                     "Post-treatment")))
-
 # paired Wilcoxon by Arm
 paired_wsr <- function(data, value, strata = NULL) {
   val_quo   <- rlang::enquo(value)
@@ -3126,9 +3197,9 @@ paired_wsr <- function(data, value, strata = NULL) {
 by_arm <- paired_wsr(tcell_inflamed_data, `T cell-inflamed GEP`)
 
 by_SIC_arm <- paired_wsr(
-  filter(tcell_inflamed_data, !is.na(`Sarcoma Immune Class - Pre-treatment`)),
+  filter(tcell_inflamed_data, !is.na(`Sarcoma Immune Class`)),
   IFNy_expanded_avg,
-  strata = `Sarcoma Immune Class - Pre-treatment`
+  strata = `Sarcoma Immune Class`
 )
 by_SIC_arm
 
@@ -3139,18 +3210,18 @@ by_Eco_arm <- paired_wsr(
 )
 by_Eco_arm
 
-# Figure Supplemental 5I --
+# Figure Supplemental 5I ---
 SIC_data <- tcell_inflamed_data %>% 
-  filter(!is.na(`Sarcoma Immune Class - Pre-treatment`)) %>% 
-  filter(`Sarcoma Immune Class - Pre-treatment` != "NA")
+  filter(!is.na(`Sarcoma Immune Class`)) %>% 
+  filter(`Sarcoma Immune Class` != "NA")
 
 # y-positions per panel for clean annotation
 SIC_ypos <- SIC_data %>%
-  group_by(`Treatment Arm`, `Sarcoma Immune Class - Pre-treatment`) %>%
+  group_by(`Treatment Arm`, `Sarcoma Immune Class`) %>%
   summarise(y.position = max(IFNy_expanded_avg, na.rm = TRUE) * 1.05, .groups = "drop")
 
 SIC_pvals <- by_SIC_arm %>%
-  left_join(SIC_ypos, by = c("Treatment Arm","Sarcoma Immune Class - Pre-treatment")) %>%
+  left_join(SIC_ypos, by = c("Treatment Arm","Sarcoma Immune Class")) %>%
   mutate(group1 = "Pre-treatment", group2 = "Post-treatment",
          label  = ifelse(is.na(p_value), "n.s.", scales::pvalue(p_value, accuracy = 0.001)))
 
@@ -3158,14 +3229,14 @@ SIC_change2 <-
   SIC_data %>% 
   mutate(Sample = paste(Patient, Time_Point, sep = "_")) %>% 
   ggplot(
-    aes(x = Time_Point, y = IFNy_expanded_avg, fill = `Sarcoma Immune Class - Pre-treatment`)
+    aes(x = Time_Point, y = IFNy_expanded_avg, fill = `Sarcoma Immune Class`)
   ) +
   geom_violin(alpha = .5, trim = FALSE, scale = "width") +
   geom_boxplot(width = .10, outlier.shape = NA, fill = "grey", alpha = .5) +
   geom_line(aes(group = Patient), colour = "black", alpha = .20) +
   geom_point(aes(group = Sample), shape = 21, size = 1.5, stroke = .5, alpha = 1) +
   scale_fill_manual(values = Sarcoma_Immune_Class_palette) +
-  facet_grid(`Treatment Arm` ~ `Sarcoma Immune Class - Pre-treatment`) +
+  facet_grid(`Treatment Arm` ~ `Sarcoma Immune Class`) +
   ggpubr::stat_pvalue_manual(
     SIC_pvals,
     label = "label", y.position = "y.position",
@@ -3173,7 +3244,7 @@ SIC_change2 <-
   ) +
   theme_pubr(border = TRUE)
 
-# Figure 6G 
+# Figure 6G ---
 Eco_data <- tcell_inflamed_data %>% 
   filter(!is.na(ecotype_assignment)) %>% 
   filter(ecotype_assignment != "NA")
@@ -3277,9 +3348,9 @@ for (gene in IC_targets) {
   # Subset data by cell type
   subset_data <- IC_genes[IC_genes$timepoint == "T1", c("Mixture", gene, 
                                                         "Treatment Arm", 
-                                                        "DFS event", 
-                                                        "DFS time (days)", 
-                                                        "Sarcoma Immune Class - Pre-treatment", 
+                                                        "DFS Event", 
+                                                        "DFS Time (Days)", 
+                                                        "Sarcoma Immune Class", 
                                                         "timepoint", "patient")]
   str(subset_data)
   print(paste("Gene:", gene))
@@ -3287,7 +3358,7 @@ for (gene in IC_targets) {
   print(dim(subset_data))
   
   # Combined analysis (all samples together)
-  cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ subset_data[[gene]], 
+  cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ subset_data[[gene]], 
                      data = subset_data)
   
   summary_cox <- summary(cox_model)
@@ -3314,7 +3385,7 @@ for (gene in IC_targets) {
     arm_data <- subset(subset_data, `Treatment Arm` == arm)
     str(arm_data)
     
-    cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ arm_data[[gene]], data = arm_data)
+    cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ arm_data[[gene]], data = arm_data)
     
     summary_cox <- summary(cox_model)
     HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -3389,7 +3460,7 @@ subset_data <- IC_genes[IC_genes$timepoint == "T1", ]
 threshold <- quantile(IC_genes$CTLA4, 0.5, na.rm = TRUE)
 subset_data$Fraction <- ifelse(subset_data$CTLA4 > threshold, "High", "Low")
 subset_data$Arm <- subset_data$`Treatment Arm`
-surv_fit <- survfit(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction + Arm, 
+surv_fit <- survfit(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction + Arm, 
                     data = subset_data)
 ctla4_survplot <- ggsurvplot(surv_fit, data = subset_data,
                              pval = T, 
@@ -3400,7 +3471,7 @@ ctla4_survplot <- ggsurvplot(surv_fit, data = subset_data,
                              title = "Disease Free Survival",
                              legend.title = "CTLA4 Status")
 
-coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
+coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
 summary(cox_model)
 summary_cox$coefficients
 
@@ -3417,7 +3488,7 @@ subset_data <- IC_genes[IC_genes$timepoint == "T1", ]
 threshold <- quantile(IC_genes$TIGIT, 0.5, na.rm = TRUE)
 subset_data$Fraction <- ifelse(subset_data$TIGIT > threshold, "High", "Low")
 subset_data$Arm <- subset_data$`Treatment Arm`
-surv_fit <- survfit(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
+surv_fit <- survfit(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
 tigit_survplot <- ggsurvplot(surv_fit, data = subset_data,
                              pval = T, 
                              pval.method = T,
@@ -3427,7 +3498,7 @@ tigit_survplot <- ggsurvplot(surv_fit, data = subset_data,
                              title = "Disease Free Survival",
                              legend.title = "TIGIT Status")
 
-cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
+cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
 summary_cox <- summary(cox_model)
 summary_cox$coefficients
 
@@ -3456,15 +3527,15 @@ cox_results <- data.frame(Gene = character(),
 for (gene in IC_targets) {
   subset_data <- IC_genes[IC_genes$timepoint == "T2", c("Mixture", gene, 
                                                         "Treatment Arm", 
-                                                        "DFS event", 
-                                                        "DFS time (days)",
+                                                        "DFS Event", 
+                                                        "DFS Time (Days)",
                                                         "timepoint", "patient")]
   str(subset_data)
   print(paste("Gene:", gene))
   print(length(subset_data[[gene]]))
   print(dim(subset_data))
   
-  cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ subset_data[[gene]], data = subset_data)
+  cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ subset_data[[gene]], data = subset_data)
   
   summary_cox <- summary(cox_model)
   HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -3489,7 +3560,7 @@ for (gene in IC_targets) {
     arm_data <- subset(subset_data, `Treatment Arm` == arm)
     str(arm_data)
     
-    cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ arm_data[[gene]], data = arm_data)
+    cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ arm_data[[gene]], data = arm_data)
     
     summary_cox <- summary(cox_model)
     HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -3552,7 +3623,7 @@ subset_data <- IC_genes[IC_genes$timepoint == "T2", ]
 threshold <- quantile(IC_genes$NCR3LG1, 0.5, na.rm = TRUE)
 subset_data$Fraction <- ifelse(subset_data$NCR3LG1 > threshold, "High", "Low")
 subset_data$Arm <- subset_data$`Treatment Arm`
-surv_fit <- survfit(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
+surv_fit <- survfit(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
 b7h6_survplot <- ggsurvplot(surv_fit, data = subset_data,
                             pval = T, 
                             pval.method = T,
@@ -3562,7 +3633,7 @@ b7h6_survplot <- ggsurvplot(surv_fit, data = subset_data,
                             title = "Disease Free Survival",
                             legend.title = "NCR3LG1 Status")
 
-cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
+cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
 summary_cox <- summary(cox_model)
 summary_cox$coefficients
 
@@ -3578,7 +3649,7 @@ subset_data <- IC_genes[IC_genes$timepoint == "T2", ]
 threshold <- quantile(IC_genes$PDCD1, 0.5, na.rm = TRUE)
 subset_data$Fraction <- ifelse(subset_data$PDCD1 > threshold, "High", "Low")
 subset_data$Arm <- subset_data$`Treatment Arm`
-surv_fit <- survfit(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
+surv_fit <- survfit(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
 PDCD1_survplot <- ggsurvplot(surv_fit, data = subset_data,
                              pval = T, 
                              pval.method = T,
@@ -3588,7 +3659,7 @@ PDCD1_survplot <- ggsurvplot(surv_fit, data = subset_data,
                              title = "Disease Free Survival",
                              legend.title = "PDCD1 Status")
 
-cox_model <- coxph(Surv(`DFS time (days)`, `DFS event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
+cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
 summary_cox <- summary(cox_model)
 summary_cox$coefficients
 
@@ -3601,8 +3672,8 @@ ggsave(PDCD1_survplot$table,
 
 # Figure Supplemental 5E/5F ----
 subset_B7H6 <- IC_genes[IC_genes$timepoint == "T2", c("Mixture", "NCR3LG1", 
-                                                      "Treatment Arm", "DFS event", 
-                                                      "DFS time (days)",
+                                                      "Treatment Arm", "DFS Event", 
+                                                      "DFS Time (Days)",
                                                       "timepoint", "patient")]
 
 subset_B7H6_exp <- subset_B7H6[subset_B7H6$`Treatment Arm` == "Experimental", ]
@@ -3844,11 +3915,11 @@ simpson_diversity <- simpson_diversity %>%
 
 # Ecotype plot considering only Pre-treatment time point  
 simpson_diversity |> 
-  filter(!is.na(`Sarcoma Ecotype Assignment - Pre-treatment`))|> 
-  filter(`Sarcoma Ecotype Assignment - Pre-treatment` != "NA") |> 
+  filter(!is.na(`Sarcoma Ecotype Assignment`))|> 
+  filter(`Sarcoma Ecotype Assignment` != "NA") |> 
   filter(Time_Point == "T1") |>
   filter(!(is.na(`Treatment Arm`))) |> 
-  mutate(ecotype_assignment = `Sarcoma Ecotype Assignment - Pre-treatment`) |>
+  mutate(ecotype_assignment = `Sarcoma Ecotype Assignment`) |>
   tidyplot(x = ecotype_assignment, 
            y = gini_simpson, 
            color = ecotype_assignment) |> 
@@ -3867,13 +3938,13 @@ simpson_diversity |>
 
 # Figure Supplemental 5J ----
 simpson_diversity |> 
-  filter(!is.na(`Sarcoma Immune Class - Pre-treatment`))|> 
-  filter(`Sarcoma Immune Class - Pre-treatment` != "NA")|> 
+  filter(!is.na(`Sarcoma Immune Class`))|> 
+  filter(`Sarcoma Immune Class` != "NA")|> 
   filter(Time_Point == "T1")|> 
   filter(!(is.na(`Treatment Arm`))) |> 
-  tidyplot(x = `Sarcoma Immune Class - Pre-treatment`, 
+  tidyplot(x = `Sarcoma Immune Class`, 
            y = gini_simpson, 
-           color = `Sarcoma Immune Class - Pre-treatment`) |> 
+           color = `Sarcoma Immune Class`) |> 
   add_mean_bar(alpha = 0.4) |> 
   add_sem_errorbar() |> 
   add_data_points_beeswarm() |> 
@@ -4049,10 +4120,10 @@ column_annotation$Arm[column_annotation$patient %in% cibersortx_long_cpm_tr4[cib
 column_annotation$Arm[is.na(column_annotation$Arm)] <- "Control"
 
 column_annotation <- column_annotation %>% 
-  left_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Immune Class - Pre-treatment", 
+  left_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Immune Class", 
                                "Tumor Grade")], by = c("patient" = "SRC code")) 
 
-column_annotation$`Sarcoma Immune Class - Pre-treatment`[is.na(column_annotation$`Sarcoma Immune Class - Pre-treatment`)] <- "Unassigned"
+column_annotation$`Sarcoma Immune Class`[is.na(column_annotation$`Sarcoma Immune Class`)] <- "Unassigned"
 column_annotation <- column_to_rownames(column_annotation, var = "samples")
 
 column_annotation$patient <- NULL
@@ -4061,10 +4132,10 @@ column_annotation$timepoint <- NULL
 column_annotation <- column_annotation[colnames(scaled_data_T1), ]
 
 column_annotation <- column_annotation %>% 
-  relocate(`Sarcoma Immune Class - Pre-treatment`)
+  relocate(`Sarcoma Immune Class`)
 
-column_annotation$`Sarcoma Immune Class - Pre-treatment` <- factor(
-  column_annotation$`Sarcoma Immune Class - Pre-treatment`,
+column_annotation$`Sarcoma Immune Class` <- factor(
+  column_annotation$`Sarcoma Immune Class`,
   levels = c("A", "B", "C", "D", "E")
 )
 
@@ -4072,7 +4143,7 @@ col_annotation <- HeatmapAnnotation(
   df = column_annotation,
   col = list(`Tumor Grade` = c("Grade 2" = "#a6dba0", "Grade 3" = "#984ea3"), 
              Arm = c("Experimental" = "#0093AF", "Control" = "#9E1C39"), 
-             `Sarcoma Immune Class - Pre-treatment` = c("A" = "#1f78b4", "B" = "#a6cee3", 
+             `Sarcoma Immune Class` = c("A" = "#1f78b4", "B" = "#a6cee3", 
                                         "C" = "#33a02c", "D" = "#fdbf6f", 
                                         "E" = "#e31a1c")))
 
@@ -4176,10 +4247,10 @@ column_annotation$Arm[column_annotation$patient %in% cibersortx_long_cpm_tr4[cib
 column_annotation$Arm[is.na(column_annotation$Arm)] <- "Control"
 
 column_annotation <- column_annotation %>% 
-  left_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Ecotype Assignment - Pre-treatment", 
+  left_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Ecotype Assignment", 
                                "Tumor Grade")], by = c("patient" = "SRC code")) 
 
-column_annotation$ecotype_assignment <- column_annotation$`Sarcoma Ecotype Assignment - Pre-treatment`
+column_annotation$ecotype_assignment <- column_annotation$`Sarcoma Ecotype Assignment`
 
 column_annotation <- column_to_rownames(column_annotation, var = "samples")
 column_annotation$patient <- NULL
@@ -4190,18 +4261,18 @@ column_annotation <- column_annotation %>%
 
 column_annotation$ecotype_assignment <- factor(
   column_annotation$ecotype_assignment,
-  levels = c("E1", "E2", "E3")
+  levels = c("SE1", "SE2", "SE3")
 )
 
 column_annotation <- column_annotation[!(is.na(column_annotation$ecotype_assignment)), ]
 scaled_data_T1 <- scaled_data_T1[, colnames(scaled_data_T1) %in% rownames(column_annotation)]
-column_annotation$`Sarcoma Ecotype Assignment - Pre-treatment` <- NULL
+column_annotation$`Sarcoma Ecotype Assignment` <- NULL
 
 col_annotation <- HeatmapAnnotation(
   df = column_annotation,
   col = list(`Tumor Grade` = c("Grade 2" = "#a6dba0", "Grade 3" = "#984ea3"), 
              Arm = c("Experimental" = "#0093AF", "Control" = "#9E1C39"), 
-             `ecotype_assignment` = c("E1" = "#F06180", "E2" = "#0F9ABE", "E3" = "#60C1A5")))
+             `ecotype_assignment` = c("SE1" = "#F06180", "SE2" = "#0F9ABE", "SE3" = "#60C1A5")))
 
 col_custom <- colorRamp2(c(-4, 0, 4), c("#2166ac", "#ffffff", "#b2182b"))
 
