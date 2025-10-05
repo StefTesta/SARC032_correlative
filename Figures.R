@@ -45,51 +45,7 @@ SIC_and_SE_assignments <- as.data.frame(SIC_and_SE_assignments)
 SIC_and_SE_assignments$`DFS Time (Days)` <- as.numeric(SIC_and_SE_assignments$`DFS Time (Days)`)
 SIC_and_SE_assignments$`Percent Necrosis` <- as.numeric(SIC_and_SE_assignments$`Percent Necrosis`)
 
-src_lookup <- c(
-  "803-072"="SRC83",  "001-074"="SRC82",  "022-059"="SRC75",  "004-058"="SRC74",
-  "004-045"="SRC68",  "022-046"="SRC67",  "022-044"="SRC66",  "001-041"="SRC65",
-  "092-037"="SRC64",  "004-040"="SRC63",  "005-027"="SRC55",  "803-029"="SRC54",
-  "802-103"="SRC535", "802-149"="SRC532", "802-148"="SRC531", "005-135"="SRC530",
-  "091-018"="SRC53",  "076-102"="SRC529", "076-146"="SRC527", "801-151"="SRC523",
-  "802-132"="SRC521", "802-120"="SRC520", "001-023"="SRC52",  "022-025"="SRC51",
-  "022-026"="SRC50",  "029-021"="SRC48",  "005-015"="SRC47",  "004-107"="SRC464",
-  "004-112"="SRC463", "001-134"="SRC462", "005-147"="SRC461", "029-020"="SRC46",
-  "801-129"="SRC459", "802-117"="SRC458", "802-122"="SRC457", "092-144"="SRC456",
-  "802-108"="SRC454", "802-138"="SRC452", "098-155"="SRC450", "048-016"="SRC45",
-  "801-141"="SRC449", "092-140"="SRC447", "001-017"="SRC44",  "005-013"="SRC42",
-  "071-009"="SRC40",  "091-010"="SRC39",  "022-012"="SRC38",  "001-131"="SRC364",
-  "092-124"="SRC362", "091-006"="SRC36",  "015-002"="SRC35",  "001-004"="SRC34",
-  "071-003"="SRC33",  "801-042"="SRC279","051-094"="SRC278","051-087"="SRC276",
-  "802-086"="SRC275","802-019"="SRC274","802-051"="SRC273","802-050"="SRC271",
-  "802-063"="SRC269","802-062"="SRC267","802-071"="SRC265","802-081"="SRC264",
-  "802-075"="SRC263","802-080"="SRC261","802-085"="SRC260","801-097"="SRC258",
-  "802-056"="SRC256","802-096"="SRC255","802-070"="SRC254","016-098"="SRC251",
-  "051-092"="SRC250","005-109"="SRC248","016-114"="SRC247","004-110"="SRC246",
-  "016-104"="SRC245","004-090"="SRC221","016-095"="SRC220","002-083"="SRC217",
-  "005-111"=NA_character_,"016-043"=NA_character_,
-  "022-152"="SRC526","802-100"="SRC455","092-142"="SRC451","001-014"="SRC43",
-  "001-128"="SRC365","802-078"="SRC262","022-105"="SRC244","001-076"="SRC84",
-  "803-069"="SRC81","001-066"="SRC80","001-038"="SRC62","015-028"="SRC56",
-  "802-143"="SRC533","076-068"="SRC528","802-150"="SRC524","048-022"="SRC49",
-  "034-137"="SRC374","092-126"="SRC363","022-127"="SRC361","048-119"="SRC360",
-  "802-052"="SRC268","001-115"="SRC259","001-089"="SRC219","071-073"="SRC79",
-  "001-067"="SRC78","092-049"="SRC73","091-055"="SRC72","071-034"="SRC60",
-  "029-033"="SRC59","022-032"="SRC58","001-030"="SRC57","802-139"="SRC536",
-  "802-153"="SRC534","802-121"="SRC522","802-130"="SRC453","005-007"="SRC41",
-  "092-008"="SRC37","801-088"="SRC277","051-057"="SRC272","051-060"="SRC270",
-  "051-077"="SRC266","016-116"="SRC257","802-079"="SRC253","001-101"="SRC223",
-  "029-099"="SRC222"
-)
-
 SIC_and_SE_assignments$Patient <- as.character(SIC_and_SE_assignments$Patient)
-
-if (!"SRC code" %in% names(SIC_and_SE_assignments)) {
-  SIC_and_SE_assignments[["SRC code"]] <- unname(src_lookup[ SIC_and_SE_assignments$Patient ])
-} else {
-  na_idx <- is.na(SIC_and_SE_assignments[["SRC code"]])
-  SIC_and_SE_assignments[["SRC code"]][na_idx] <-
-    unname(src_lookup[ SIC_and_SE_assignments$Patient[na_idx] ])
-}
 
 # Figure 3A ----- ----
 cd4_clusters <- c(
@@ -2981,14 +2937,6 @@ tcell_inflamed_data <- as.data.frame(tcell_inflamed_data)
 tcell_inflamed_data$`T cell-inflamed GEP` <- as.numeric(tcell_inflamed_data$`T cell-inflamed GEP`)
 
 tcell_inflamed_data$Patient <- as.character(tcell_inflamed_data$Patient)
-
-if (!"SRC code" %in% names(tcell_inflamed_data)) {
-  tcell_inflamed_data[["SRC code"]] <- unname(src_lookup[ tcell_inflamed_data$Patient ])
-} else {
-  na_idx <- is.na(tcell_inflamed_data[["SRC code"]])
-  tcell_inflamed_data[["SRC code"]][na_idx] <-
-    unname(src_lookup[ tcell_inflamed_data$Patient[na_idx] ])
-}
 
 tcell_inflamed_data <- tcell_inflamed_data %>% 
   left_join(SIC_and_SE_assignments, by = c("Patient", "SRC code", 
