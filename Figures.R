@@ -1,6 +1,7 @@
 ##### Code for images of SU2C-SARC032 Correlative TME Analysis Manuscript #####
 # load packages ----
 set.seed(123)
+
 library(tidyverse)    
 library(data.table)
 library(readxl)
@@ -28,15 +29,18 @@ library(forestplot)
 library(forestploter)
 library(compositions)
 library(tidyplots)
+library(rstatix)
+library(SingleCellExperiment)
+library(scater)
 
-# Load data ----
-flow_results_filtered <- read_excel("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx", 
+# Load data from Supp. Tables ----
+flow_results_filtered <- read_excel(".../data//Supplementary_Tables.xlsx", 
                                     sheet = 4)
 colnames(flow_results_filtered) <- flow_results_filtered[2, ]
 flow_results_filtered <- flow_results_filtered[-c(1,2) ,]
 flow_results_filtered <- as.data.frame(flow_results_filtered)
 
-SIC_and_SE_assignments <- read_excel("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx", 
+SIC_and_SE_assignments <- read_excel(".../data//Supplementary_Tables.xlsx", 
                                      sheet = 1)
 SIC_and_SE_assignments <- SIC_and_SE_assignments[-c(1), ]
 colnames(SIC_and_SE_assignments) <- SIC_and_SE_assignments[1, ]
@@ -45,7 +49,51 @@ SIC_and_SE_assignments <- as.data.frame(SIC_and_SE_assignments)
 SIC_and_SE_assignments$`DFS Time (Days)` <- as.numeric(SIC_and_SE_assignments$`DFS Time (Days)`)
 SIC_and_SE_assignments$`Percent Necrosis` <- as.numeric(SIC_and_SE_assignments$`Percent Necrosis`)
 
+src_lookup <- c(
+  "803-072"="SRC83",  "001-074"="SRC82",  "022-059"="SRC75",  "004-058"="SRC74",
+  "004-045"="SRC68",  "022-046"="SRC67",  "022-044"="SRC66",  "001-041"="SRC65",
+  "092-037"="SRC64",  "004-040"="SRC63",  "005-027"="SRC55",  "803-029"="SRC54",
+  "802-103"="SRC535", "802-149"="SRC532", "802-148"="SRC531", "005-135"="SRC530",
+  "091-018"="SRC53",  "076-102"="SRC529", "076-146"="SRC527", "801-151"="SRC523",
+  "802-132"="SRC521", "802-120"="SRC520", "001-023"="SRC52",  "022-025"="SRC51",
+  "022-026"="SRC50",  "029-021"="SRC48",  "005-015"="SRC47",  "004-107"="SRC464",
+  "004-112"="SRC463", "001-134"="SRC462", "005-147"="SRC461", "029-020"="SRC46",
+  "801-129"="SRC459", "802-117"="SRC458", "802-122"="SRC457", "092-144"="SRC456",
+  "802-108"="SRC454", "802-138"="SRC452", "098-155"="SRC450", "048-016"="SRC45",
+  "801-141"="SRC449", "092-140"="SRC447", "001-017"="SRC44",  "005-013"="SRC42",
+  "071-009"="SRC40",  "091-010"="SRC39",  "022-012"="SRC38",  "001-131"="SRC364",
+  "092-124"="SRC362", "091-006"="SRC36",  "015-002"="SRC35",  "001-004"="SRC34",
+  "071-003"="SRC33",  "801-042"="SRC279","051-094"="SRC278","051-087"="SRC276",
+  "802-086"="SRC275","802-019"="SRC274","802-051"="SRC273","802-050"="SRC271",
+  "802-063"="SRC269","802-062"="SRC267","802-071"="SRC265","802-081"="SRC264",
+  "802-075"="SRC263","802-080"="SRC261","802-085"="SRC260","801-097"="SRC258",
+  "802-056"="SRC256","802-096"="SRC255","802-070"="SRC254","016-098"="SRC251",
+  "051-092"="SRC250","005-109"="SRC248","016-114"="SRC247","004-110"="SRC246",
+  "016-104"="SRC245","004-090"="SRC221","016-095"="SRC220","002-083"="SRC217",
+  "005-111"=NA_character_,"016-043"=NA_character_,
+  "022-152"="SRC526","802-100"="SRC455","092-142"="SRC451","001-014"="SRC43",
+  "001-128"="SRC365","802-078"="SRC262","022-105"="SRC244","001-076"="SRC84",
+  "803-069"="SRC81","001-066"="SRC80","001-038"="SRC62","015-028"="SRC56",
+  "802-143"="SRC533","076-068"="SRC528","802-150"="SRC524","048-022"="SRC49",
+  "034-137"="SRC374","092-126"="SRC363","022-127"="SRC361","048-119"="SRC360",
+  "802-052"="SRC268","001-115"="SRC259","001-089"="SRC219","071-073"="SRC79",
+  "001-067"="SRC78","092-049"="SRC73","091-055"="SRC72","071-034"="SRC60",
+  "029-033"="SRC59","022-032"="SRC58","001-030"="SRC57","802-139"="SRC536",
+  "802-153"="SRC534","802-121"="SRC522","802-130"="SRC453","005-007"="SRC41",
+  "092-008"="SRC37","801-088"="SRC277","051-057"="SRC272","051-060"="SRC270",
+  "051-077"="SRC266","016-116"="SRC257","802-079"="SRC253","001-101"="SRC223",
+  "029-099"="SRC222"
+)
+
 SIC_and_SE_assignments$Patient <- as.character(SIC_and_SE_assignments$Patient)
+
+if (!"SRC code" %in% names(SIC_and_SE_assignments)) {
+  SIC_and_SE_assignments[["SRC code"]] <- unname(src_lookup[ SIC_and_SE_assignments$Patient ])
+} else {
+  na_idx <- is.na(SIC_and_SE_assignments[["SRC code"]])
+  SIC_and_SE_assignments[["SRC code"]][na_idx] <-
+    unname(src_lookup[ SIC_and_SE_assignments$Patient[na_idx] ])
+}
 
 # Figure 3A ----- ----
 cd4_clusters <- c(
@@ -404,7 +452,7 @@ test_results <- data_for_analysis %>%
   select(CellType, SICE_vs_SE1_classifier, group1, group2, p, p.adj, p.adj.signif)
 
 
-# Figure Supplemental 2A ---- 
+# Figure Supplemental 3A ---- 
 cd8_clusters <- c(
   "PeacoQCGoodEvents/Time/FSC Singlets/SSC Singlets/yZombie-/CD45 +/Scatter Lymphs/CD3+/CD8+ | Count",
   "PeacoQCGoodEvents/Time/FSC Singlets/SSC Singlets/yZombie-/CD45 +/Scatter Lymphs/CD3+/CD8+/CD103+ | Count",    # ITGAE                         
@@ -554,7 +602,7 @@ draw(ht)
 dev.off()
 
 
-# Figure Supplemental 2B ---- 
+# Figure Supplemental 3B ---- 
 tumor_long <- as.data.frame(macro_clusters_flow_heatmap_df) %>%
   rownames_to_column(var = "CellType") %>%
   pivot_longer(-CellType, names_to = "Sample", values_to = "ZScore")
@@ -762,7 +810,7 @@ test_results <- data_for_analysis %>%
   select(CellType, SICE_vs_SE1_classifier, group1, group2, p, p.adj, p.adj.signif)
 
 # Figure 3G ----
-cox_flow_results <- fread("/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/Flow_cytometry/Cox_analysis_flow.csv")
+cox_flow_results <- fread(".../data/Cox_T2_Flow.csv")
 cox_flow_results <- as.data.frame(cox_flow_results)
 cox_flow_results$V1 <- NULL
 
@@ -833,11 +881,15 @@ barplot_double_faceted_T2_flow <- ggplot(
     midpoint = 0,
     name = "Signed -log10(p)\n(blue = better DFS,\n red = worse DFS)"
   ) +
-  facet_grid(Category ~ Arm, scales = "free", space = "free_x") +
+  facet_grid(Category ~ Arm, scales = "free", space = "fixed", switch = "y") +
   
   geom_vline(xintercept = c(-1.3, 0, 1.3), 
              linetype = "dashed", 
              color = "black") +
+  
+  # ⬇️ move y-axis to the RIGHT
+  scale_y_discrete(position = "right") +
+  
   theme_pubr(border = TRUE, base_size = 14) +
   theme(
     legend.position = "right",
@@ -854,7 +906,7 @@ barplot_double_faceted_T2_flow <- ggplot(
 ggsave(barplot_double_faceted_T2_flow, width = 15, height = 20, units = "cm", 
        filename = '.../T2_cox_barplot.pdf')
 
-# Figure Supplemental 2C ----
+# Figure Supplemental 3C ----
 tregs_clusters <- c(
   "PeacoQCGoodEvents/Time/FSC Singlets/SSC Singlets/yZombie-/CD45 +/Scatter Lymphs/CD3+/CD4 +/Treg | Count", # denominator 
   "PeacoQCGoodEvents/Time/FSC Singlets/SSC Singlets/yZombie-/CD45 +/Scatter Lymphs/CD3+/CD4 +/Treg/CD103+ | Count",    # ITGAE                         
@@ -974,7 +1026,7 @@ pdf(".../flow_tregs_clusters.pdf",
 draw(ht)
 dev.off()
 
-# Figure Supplemental 2D ----
+# Figure Supplemental 3D ----
 tumor_long <- as.data.frame(macro_clusters_flow_heatmap_df) %>%
   rownames_to_column(var = "CellType") %>%
   pivot_longer(-CellType, names_to = "Sample", values_to = "ZScore")
@@ -1019,7 +1071,7 @@ test_results <- data_for_analysis_tregs %>%
   add_significance("p.adj") %>%
   select(CellType, group1, group2, p, p.adj, p.adj.signif)
 
-# Figure Supplemental 2E ----
+# Figure Supplemental 3E ----
 macro_clusters_flow_heatmap_df <- as.data.frame(macro_clusters_flow_heatmap_df)
 macro_clusters_flow_heatmap_df_SE1_SICE <- macro_clusters_flow_heatmap_df[, colnames(macro_clusters_flow_heatmap_df) %in% unique(c(SE1_patients, SICE_patients))]
 tumor_long <- as.data.frame(macro_clusters_flow_heatmap_df_SE1_SICE) %>%
@@ -1097,7 +1149,7 @@ pdf(".../flow_tregs_clusters_SE1_SICE.pdf",
 draw(ht)
 dev.off()
 
-# Figure Supplemental 2F ----
+# Figure Supplemental 3F ----
 macro_clusters_flow_heatmap_df <- as.data.frame(macro_clusters_flow_heatmap_df)
 macro_clusters_flow_heatmap_df_SE1_SICE <- macro_clusters_flow_heatmap_df[, colnames(macro_clusters_flow_heatmap_df) %in% unique(c(SE1_patients, SICE_patients))]
 tumor_long <- as.data.frame(macro_clusters_flow_heatmap_df_SE1_SICE) %>%
@@ -1176,11 +1228,6 @@ test_results <- data_for_analysis %>%
          p, p.adj, p.adj.signif)
 
 # Figure 4A ----
-set.seed(123) 
-
-library(SingleCellExperiment)
-library(scater)
-
 cd45_umap <- readRDS(".../data/data.cd45.sce.umap.RDS")
 
 umap_mat <- reducedDim(cd45_umap, "UMAP2_on_PCA")
@@ -1348,13 +1395,10 @@ dotplot_cytof <- ggplot(dot_df_scaled, aes(
 ggsave(dotplot_cytof, filename = '.../plots/dotplot_Figure4b.pdf', 
        width = 32.5, height = 15, units = "cm")
 
-
-
-
 # Figure 4C ----
-phenotype_CyTOF <- readRDS('.../phenoData.df.RDS')
-cluster_all_cells <- readRDS('.../clusterAssignments.RDS')
-percent_all_cells <- readRDS('.../percent.mat.RDS')
+phenotype_CyTOF <- readRDS('.../data/CyTOF/phenoData.df.RDS')
+cluster_all_cells <- readRDS('.../data/CyTOF/clusterAssignments.RDS')
+percent_all_cells <- readRDS('.../data/CyTOF/percent.mat.RDS')
 
 rownames(percent_all_cells) <- cluster_all_cells[ rownames(percent_all_cells) ]
 
@@ -1362,7 +1406,7 @@ phenotype_CyTOF$PatientID <- gsub("x", "", phenotype_CyTOF$PatientID)
 phenotype_CyTOF$PatientID <- gsub("_", "-", phenotype_CyTOF$PatientID)
 
 phenotype_CyTOF <- phenotype_CyTOF %>% 
-  left_join(SIC_and_SE_assignments, by = c("PatientID" = "Patient"))
+  left_join(sarc32_outcome, by = c("PatientID" = "Subject"))
 
 phenotype_CyTOF$Visit <- factor(
   phenotype_CyTOF$Visit,
@@ -1378,12 +1422,50 @@ phenotype_CyTOF$Visit <- factor(
 
 # remove non evaluable patients
 phenotype_CyTOF <- phenotype_CyTOF %>% 
-  filter(`SRC code` %in% evaluable_patients)
+  filter(PatientID %in% SIC_and_SE_assignments$Patient)
+
+# load blood draw timing information 
+blood_draw_timing <- fread('.../data/SARC032_blood_draw_timing.csv')
+
+# Adjust visit labels for joining
+blood_draw_timing$collection_time_point[blood_draw_timing$collection_time_point == "Baseline"] <- "Prior to 1st Tx"
+blood_draw_timing$collection_time_point[blood_draw_timing$collection_time_point == "30 days post-cycle 6 (3 months after surgery)"] <- "3 mo Post-Surgery"
+blood_draw_timing$collection_time_point[blood_draw_timing$collection_time_point == "Prior to Cycle 2 (before week 3 of radiotherapy)"] <- "1 week Post Initiating treatment During RT"
+blood_draw_timing$collection_time_point[blood_draw_timing$collection_time_point == "Prior to surgery"] <- "Before Surgery"
+blood_draw_timing$collection_time_point[blood_draw_timing$collection_time_point == "Final Sample"] <- "12 mo Post-Surgery"
+
+# 1) Blood draw timing (from enrollment -> blood draw)
+blood_timing <- blood_draw_timing %>%
+  transmute(
+    PatientID = Subject,
+    Visit_key = collection_time_point,
+    landmark_days = as.numeric(time_from_enrollment_to_blood_draw_days)
+  )
+
+blood_resolved <- blood_timing %>%
+  filter(!is.na(Visit_key)) %>%
+  arrange(PatientID, Visit_key, landmark_days) %>%
+  group_by(PatientID, Visit_key) %>%
+  mutate(dup_rank = row_number(),
+         chosen   = dup_rank == 1) %>%       
+  ungroup()
+
+blood_timing_one_per <- blood_resolved %>%
+  filter(chosen) %>%
+  select(PatientID, Visit_key, landmark_days)
+
+df0 <- phenotype_CyTOF %>%
+  mutate(
+    Visit_key = Visit,
+    event  = `DFS event` == "Event occurred",
+    t_event = as.numeric(`DFS time (days)`)
+  ) %>%
+  left_join(blood_timing_one_per, by = c("PatientID","Visit_key"))
 
 percent_all_cells <- percent_all_cells[, colnames(percent_all_cells) %in% phenotype_CyTOF$Sample]
 
-# centered log ratio normalization 
-clr_mat <- compositions::clr(as.matrix(t(percent_all_cells)))       
+# CLR normalization 
+clr_mat <- compositions::clr(as.matrix(t(percent_all_cells)))     
 
 percent_all_cells <- clr_mat %>% 
   as.data.frame() %>%
@@ -1393,15 +1475,16 @@ percent_all_cells <- clr_mat %>%
 percent_all_cells_long <- percent_all_cells %>%
   pivot_longer(
     cols = -CellType,           
-    names_to = "Sample",       
+    names_to = "Sample",        
     values_to = "Abundance"       
   )
 
 names(percent_all_cells_long) <- c("Sample", "CellType", "Abundance")
 
 percent_all_cells_long <- percent_all_cells_long %>% 
-  left_join(phenotype_CyTOF[, c("PatientID" , "Sample", 
-                                "Collection_Date", "Visit")], by = c("Sample"))
+  left_join(df0[, c("PatientID" , "Sample", 
+                    "Visit_key", "event", "t_event", "landmark_days",
+                    "Collection_Date", "Visit")], by = c("Sample"))
 
 percent_all_cells_long <- percent_all_cells_long %>% 
   left_join(SIC_and_SE_assignments, by = c("PatientID" = "Patient"))
@@ -1420,15 +1503,13 @@ percent_all_cells_long$Visit <- factor(
   )
 )
 
-# remove non evaluable patients
-percent_all_cells_long <- percent_all_cells_long %>% 
-  filter(PatientID %in% SIC_and_SE_assignments$Patient)
-
+# PBMCs line plot 
+percent_all_cells_long$Arm <- percent_all_cells_long$`Treatment Arm`
 line_blood <- ggline(
   data = percent_all_cells_long,
   x = "Visit",
   y = "Abundance",
-  color = "Treatment Arm",
+  color = "Arm",
   palette = c("Control" = "#9D1536", "Experimental" = "#0093AF"),
   facet.by = "CellType",
   add = "mean_se",      
@@ -1444,8 +1525,6 @@ line_blood <- ggline(
 ggsave(line_blood, 
        filename = '/.../time_series_PBMCs_CLR.pdf', 
        units = "cm", width = 32, height = 25)
-
-percent_all_cells_long$Arm <- percent_all_cells_long$`Treatment Arm`
 
 # Wilcoxon test - between Arms comparisons 
 stats_table_between_arms <- compare_means(
@@ -1490,194 +1569,163 @@ stats_table_between_visit <- stats_table_between_visit %>%
   mutate(p.adj = p.adjust(p, method = "BH"))
 
 # Figure 4D ----
-cell_types <- unique(percent_all_cells_long$CellType)
-timepoints <- unique(percent_all_cells_long$Visit)
+## --- 0) Build landmark time and inclusion flag
+percent_all_cells_long <- percent_all_cells_long %>%
+  mutate(
+    time_since_landmark = t_event - landmark_days,
+    include = !is.na(landmark_days) & !is.na(t_event) & (t_event > landmark_days)
+  )
 
-# Initialize a data frame to store Cox PH results
-cox_results <- data.frame(Cell_Type = character(),
-                          Arm = character(),
-                          HR = numeric(),
-                          Timepoint = character(), 
-                          Lower_CI = numeric(),
-                          Upper_CI = numeric(),
-                          coef = numeric(),
-                          se = numeric(),
-                          p_value = numeric(),
-                          adjusted_p_value = numeric(),
-                          stringsAsFactors = FALSE)
+# (Optional) QA: see how many are kept/excluded per visit/arm
+qa_counts <- percent_all_cells_long %>%
+  group_by(Visit, Arm) %>%
+  summarize(
+    n_total = n_distinct(Sample),
+    n_kept  = n_distinct(Sample[include]),
+    n_excl_preL = n_distinct(Sample[!include & event & !is.na(landmark_days) & !is.na(t_event) & t_event <= landmark_days]),
+    .groups = "drop"
+  )
+print(qa_counts)
 
-# Loop through each cell type
+## --- 1) Cox helper (landmark-correct)
+fit_cox <- function(dat) {
+  dat <- dat %>% filter(include)
+  if (nrow(dat) < 5 || dplyr::n_distinct(dat$Abundance) < 2 || sum(dat$event) < 1) return(NULL)
+  fit <- coxph(Surv(time_since_landmark, event) ~ Abundance, data = dat)
+  s   <- summary(fit)
+  tibble(
+    HR        = s$conf.int[1, "exp(coef)"],
+    Lower_CI  = s$conf.int[1, "lower .95"],
+    Upper_CI  = s$conf.int[1, "upper .95"],
+    coef      = s$coefficients[1, "coef"],
+    se        = s$coefficients[1, "se(coef)"],
+    p_value   = s$coefficients[1, "Pr(>|z|)"],
+    n_included = nrow(dat),
+    n_events   = sum(dat$event)
+  )
+}
+
+cell_types <- sort(unique(percent_all_cells_long$CellType))
+timepoints <- levels(percent_all_cells_long$Visit) %||% unique(percent_all_cells_long$Visit)
+
+## --- 2) Loop exactly like before, but using time_since_landmark
+cox_results <- tibble(
+  Cell_Type = character(), Arm = character(), Timepoint = character(),
+  HR = numeric(), Lower_CI = numeric(), Upper_CI = numeric(),
+  coef = numeric(), se = numeric(), p_value = numeric(),
+  n_included = integer(), n_events = integer()
+)
+
 for (cell in cell_types) {
   for (time in timepoints) {
-    # Subset data by cell type
-    subset_data <- subset(percent_all_cells_long, CellType == cell & Visit == time)
+    subset_data <- percent_all_cells_long %>%
+      filter(CellType == cell, Visit == time)
     
-    # Combined analysis (all samples together)
-    if (length(unique(subset_data$Abundance)) > 1) {
-      cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = subset_data)
-      
-      summary_cox <- summary(cox_model)
-      HR <- summary_cox$coefficients[1, "exp(coef)"]
-      Lower_CI <- summary_cox$conf.int[1, "lower .95"]
-      Upper_CI <- summary_cox$conf.int[1, "upper .95"]
-      coef <- summary_cox$coefficients[1, "coef"]
-      se <- summary_cox$coefficients[1, "se(coef)"]
-      p_value <- summary_cox$coefficients[1, "Pr(>|z|)"]
-      
-      # Store results for combined analysis
-      cox_results <- rbind(cox_results, data.frame(Cell_Type = cell,
-                                                   Arm = "All",  # Label for combined analysis
-                                                   HR = HR,
-                                                   Timepoint = time,
-                                                   Lower_CI = Lower_CI,
-                                                   Upper_CI = Upper_CI,
-                                                   coef = coef,
-                                                   se = se,
-                                                   p_value = p_value,
-                                                   stringsAsFactors = FALSE))
+    # All patients (pooled)
+    res_all <- fit_cox(subset_data)
+    if (!is.null(res_all)) {
+      cox_results <- bind_rows(
+        cox_results,
+        res_all %>% mutate(Cell_Type = cell, Arm = "All", Timepoint = time, .before = 1)
+      )
     } else {
-      message(paste("Skipping combined analysis for cell type", cell, "- no variability in 'Value'"))
+      message(sprintf("Skip ALL: %s @ %s (insufficient variation/events)", cell, time))
     }
     
-    # Separate analysis for Control and Experimental arms
-    for (arm in c("Control", "Experimental")) {
-      arm_data <- subset(subset_data, Arm == arm)
-      
-      if (length(unique(arm_data$Abundance)) > 1) {
-        cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = arm_data)
-        
-        summary_cox <- summary(cox_model)
-        HR <- summary_cox$coefficients[1, "exp(coef)"]
-        Lower_CI <- summary_cox$conf.int[1, "lower .95"]
-        Upper_CI <- summary_cox$conf.int[1, "upper .95"]
-        coef <- summary_cox$coefficients[1, "coef"]
-        se <- summary_cox$coefficients[1, "se(coef)"]
-        p_value <- summary_cox$coefficients[1, "Pr(>|z|)"]
-        
-        # Store results for each arm
-        cox_results <- rbind(cox_results, data.frame(Cell_Type = cell,
-                                                     Arm = arm,
-                                                     HR = HR,
-                                                     Timepoint = time,
-                                                     Lower_CI = Lower_CI,
-                                                     Upper_CI = Upper_CI,
-                                                     coef = coef,
-                                                     se = se,
-                                                     p_value = p_value,
-                                                     stringsAsFactors = FALSE))
+    # By Arm
+    for (arm in c("Control","Experimental")) {
+      res_arm <- fit_cox(subset_data %>% filter(Arm == arm))
+      if (!is.null(res_arm)) {
+        cox_results <- bind_rows(
+          cox_results,
+          res_arm %>% mutate(Cell_Type = cell, Arm = arm, Timepoint = time, .before = 1)
+        )
       } else {
-        message(paste("Skipping cell type", cell, "in arm", arm, "- no variability in 'Value'"))
+        message(sprintf("Skip %s: %s @ %s (insufficient variation/events)", arm, cell, time))
       }
     }
   }
 }
 
-cox_results_sig <- cox_results[cox_results$p_value < 0.05, ]
+# BH-FDR within each (Visit, Arm) slice (same rule you used)
+cox_results <- cox_results %>%
+  group_by(Timepoint, Arm) %>%
+  mutate(adjusted_p_value = p.adjust(p_value, method = "BH")) %>%
+  ungroup()
 
-cox_results$signed_log10p <- sign(cox_results$coef) * (-log10(cox_results$p_value))
-cox_results$time_arm <- paste(cox_results$Arm, cox_results$Timepoint, sep = "_")
+cox_results_sig <- cox_results %>% filter(p_value < 0.05)
 
-wide_df <- cox_results %>%
-  dplyr::select(Cell_Type, time_arm, signed_log10p) %>%
-  pivot_wider(
-    names_from   = time_arm,
-    values_from  = signed_log10p
+## --- 3) Heatmap (unchanged, built from the new cox_results)
+cox_results <- cox_results %>%
+  mutate(
+    signed_log10p = sign(coef) * (-log10(p_value)),
+    time_arm = paste(Arm, Timepoint, sep = "_")
   )
 
+wide_df <- cox_results %>%
+  select(Cell_Type, time_arm, signed_log10p) %>%
+  pivot_wider(names_from = time_arm, values_from = signed_log10p)
+
 mat <- wide_df %>%
-  tibble::column_to_rownames("Cell_Type") %>%
+  column_to_rownames("Cell_Type") %>%
   as.matrix()
 
-col_anno_df <- as.data.frame(colnames(mat))
-col_anno_df$Arm <- word(colnames(mat), 1, sep = "_")
-col_anno_df$Time <- word(colnames(mat), 2, sep = "_")
-col_anno_df <- column_to_rownames(col_anno_df, var = "colnames(mat)")
-col_anno_df <- col_anno_df[colnames(mat), ]
+col_anno_df <- data.frame(colnames(mat)) %>%
+  setNames("colname")
+col_anno_df$Arm  <- stringr::word(col_anno_df$colname, 1, sep = "_")
+col_anno_df$Time <- stringr::word(col_anno_df$colname, 2, sep = "_")
+rownames(col_anno_df) <- col_anno_df$colname
+col_anno_df <- col_anno_df[colnames(mat), , drop = FALSE]
 
 col_anno_df$Time <- factor(
   col_anno_df$Time,
-  levels = c(
-    "Prior to 1st Tx", 
-    "1 week Post Initiating treatment", 
-    "During RT", 
-    "Before Surgery", 
-    "3 mo Post-Surgery", 
-    "12 mo Post-Surgery"
-  )
+  levels = c("Prior to 1st Tx",
+             "1 week Post Initiating treatment",
+             "During RT",
+             "Before Surgery",
+             "3 mo Post-Surgery",
+             "12 mo Post-Surgery")
 )
-
-col_anno_df$Arm <- as.factor(col_anno_df$Arm)
+col_anno_df$Arm <- factor(col_anno_df$Arm, levels = c("Control","Experimental","All"))
 
 ord <- unlist(lapply(levels(col_anno_df$Arm), function(a){
   idx <- which(col_anno_df$Arm == a)
   idx[order(col_anno_df$Time[idx])]
 }))
+mat_ord         <- mat[, ord, drop = FALSE]
+col_anno_df_ord <- col_anno_df[ord, , drop = FALSE]
+col_anno_df_ord$colname <- NULL
 
-mat_ord        <- mat[,     ord]
-col_anno_df_ord<- col_anno_df[ord, ]
-
-annotation_column <- HeatmapAnnotation(df = col_anno_df_ord, col = list(Arm = c("Control" = "#9D1536", 
-                                                                                "Experimental" = "#0093AF",
-                                                                                "All" = "grey"), 
-                                                                        
-                                                                        Time = c("Prior to 1st Tx" = "#CC79A7", 
-                                                                                 "1 week Post Initiating treatment" = "#0072B2", 
-                                                                                 "Before Surgery" = "#56B4E9", 
-                                                                                 "During RT" = "#009E73", 
-                                                                                 "3 mo Post-Surgery"  = "#F5C710", 
-                                                                                 "12 mo Post-Surgery" = "#E69F00")),  
-                                       which = "column",
-                                       show_legend = T, show_annotation_name = F)
-
-# highlight significant associations 
-pairs <- list(
-  c("B cells", "All_12 mo Post-Surgery"), 
-  c("B cells", "Experimental_12 mo Post-Surgery"),
-  c("Effector CD8", "All_12 mo Post-Surgery"), 
-  c("Effector CD8", "Experimental_12 mo Post-Surgery")
+annotation_column <- HeatmapAnnotation(
+  df = col_anno_df_ord,
+  col = list(
+    Arm = c("Control" = "#9D1536", "Experimental" = "#0093AF", "All" = "grey"),
+    Time = c("Prior to 1st Tx" = "#CC79A7",
+             "1 week Post Initiating treatment" = "#0072B2",
+             "Before Surgery" = "#56B4E9",
+             "During RT" = "#009E73",
+             "3 mo Post-Surgery"  = "#F5C710",
+             "12 mo Post-Surgery" = "#E69F00")
+  ),
+  which = "column",
+  show_legend = TRUE, show_annotation_name = FALSE
 )
 
-highlight_pairs <- do.call(
-  rbind,
-  lapply(pairs, \(x) data.frame(g1 = x[1], g2 = x[2],
-                                stringsAsFactors = FALSE))
+ht <- Heatmap(
+  mat_ord,
+  top_annotation = annotation_column,
+  column_split = as.factor(col_anno_df_ord$Arm),
+  show_column_names = FALSE,
+  cluster_column_slices = FALSE,
+  cluster_columns = FALSE,
+  name = "signed_p",
+  heatmap_width = unit(20, "cm"),
+  heatmap_height = unit(15, "cm"),
+  col = colorRamp2(c(min(mat, na.rm=TRUE), 0, max(mat, na.rm=TRUE)),
+                   c("#4575b4", "white", "#d73027"))
 )
 
-stars <- matrix(FALSE, nrow(mat_ord), ncol(mat_ord),
-                dimnames = dimnames(mat_ord))
-for(k in seq_len(nrow(highlight_pairs))){
-  r <- highlight_pairs$g1[k]
-  c <- highlight_pairs$g2[k]
-  if(r %in% rownames(stars) && c %in% colnames(stars)){
-    stars[r, c] <- TRUE
-  }
-  if(c %in% rownames(stars) && r %in% colnames(stars)){
-    stars[c, r] <- TRUE
-  }
-}
-
-
-ht <- Heatmap(mat_ord, top_annotation = annotation_column,
-              column_split = as.factor(col_anno_df_ord$Arm),
-              show_column_names = F,
-              cluster_column_slices = F,
-              cluster_columns = F,
-              name = "signed_p",
-              heatmap_width = unit(20, "cm"), 
-              heatmap_height = unit(15, "cm"),
-              col = colorRamp2(c(min(mat), 0, max(mat)), c("#4575b4", "white", "#d73027")),
-              cell_fun = function(j, i, x, y, width, height, fill){
-                if(stars[i, j])                     # row index i, col j
-                  grid.text("*", x, y,
-                            gp = gpar(fontsize = 30,
-                                      col = "black",
-                                      fontface = "bold"))
-              }
-)
-
-ht <- draw(ht, heatmap_legend_side = "right", 
-           annotation_legend_side = "right", 
-           merge_legend = TRUE)
+ht <- draw(ht, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend = TRUE)
 w = ComplexHeatmap:::width(ht)
 w = convertX(w, "inch", valueOnly = TRUE)
 h = ComplexHeatmap:::height(ht)
@@ -1688,31 +1736,29 @@ draw(ht)
 dev.off()
 
 # Figure 4E ----
-cluster_T_cells <- readRDS('.../tcell.clusterAssignments.RDS')
-percent_T_cells <- readRDS('.../tcell.percent.mat.RDS')
+cluster_T_cells <- readRDS('.../data/CyTOF/tcell.clusterAssignments.RDS')
+percent_T_cells <- readRDS('.../data/CyTOF/tcell.percent.mat.RDS')
 
 rownames(percent_T_cells) <- cluster_T_cells[ rownames(percent_T_cells) ]
 
-clr_mat <- compositions::clr(as.matrix(t(percent_T_cells)))       
+clr_mat <- compositions::clr(as.matrix(t(percent_T_cells)))        # rows=samples, cols=cell subsets
 
 percent_T_cells <- t(clr_mat) %>% 
   as.data.frame() %>%
   rownames_to_column(var = "CellType")
 
+# Pivot to long format
 percent_T_cells_long <- percent_T_cells %>%
   pivot_longer(
-    cols = -CellType,            
-    names_to = "Sample",         
-    values_to = "Abundance"       
+    cols = -CellType,            # All columns except 'CellType' 
+    names_to = "Sample",         # Column to store old column names (sample IDs)
+    values_to = "Abundance"        # Column to store the values
   )
 
-phenotype_CyTOF <- readRDS('.../phenoData.df.RDS')
-phenotype_CyTOF$PatientID <- gsub("x", "", phenotype_CyTOF$PatientID)
-phenotype_CyTOF$PatientID <- gsub("_", "-", phenotype_CyTOF$PatientID)
-
 percent_T_cells_long <- percent_T_cells_long %>% 
-  left_join(phenotype_CyTOF[, c("PatientID" , "Sample", 
-                                "Collection_Date", "Visit")], by = c("Sample"))
+  left_join(df0[, c("PatientID" , "Sample", 
+                    "Visit_key", "event", "t_event", "landmark_days",
+                    "Collection_Date", "Visit")], by = c("Sample"))
 
 percent_T_cells_long <- percent_T_cells_long %>% 
   left_join(SIC_and_SE_assignments, by = c("PatientID" = "Patient"))
@@ -1734,15 +1780,18 @@ percent_T_cells_long$Visit <- factor(
 percent_T_cells_long <- percent_T_cells_long %>% 
   filter(PatientID %in% SIC_and_SE_assignments$Patient)
 
+percent_T_cells_long$Arm <- percent_T_cells_long$`Treatment Arm`
+
+# Line plot T cells 
 line_t_cells <- ggline(
   data = percent_T_cells_long,
   x = "Visit",
   y = "Abundance",
-  color = "Treatment Arm",
+  color = "Arm",
   palette = c("Control" = "#9D1536", "Experimental" = "#0093AF"),
   facet.by = "CellType",
   add = "mean_se",      
-  scales = "free_y", 
+  scales = "free_y", # Add error bars for mean ± SD
   x.text.angle = 45, 
   ncol = 3, 
   xlab = "Time Points", 
@@ -1753,10 +1802,8 @@ line_t_cells <- ggline(
         axis.text.y = element_text(size = 14))
 
 ggsave(line_t_cells, 
-       filename = '/Users/stefanotesta/Desktop/Moding Lab/SARC_32/CyTOF/plots/time_series_T_cells_CLR.pdf', 
+       filename = '/.../time_series_T_cells_CLR.pdf', 
        units = "cm", width = 32.5, height = 35.5)
-
-percent_T_cells_long$Arm <- percent_T_cells_long$`Treatment Arm`
 
 # Wilcoxon test between Arms 
 stats_table_between_arms <- compare_means(
@@ -1800,192 +1847,159 @@ stats_table_between_visit <- stats_table_between_visit %>%
 
 
 # Figure 4F ----
-cell_types <- unique(percent_T_cells_long$CellType)
-timepoints <- unique(percent_T_cells_long$Visit)
+percent_T_cells_long <- percent_T_cells_long %>%
+  mutate(
+    time_since_landmark = t_event - landmark_days,
+    include = !is.na(landmark_days) & !is.na(t_event) & (t_event > landmark_days)
+  )
 
-# Initialize a data frame to store Cox PH results
-cox_results <- data.frame(Cell_Type = character(),
-                          Arm = character(),
-                          HR = numeric(),
-                          Timepoint = character(), 
-                          Lower_CI = numeric(),
-                          Upper_CI = numeric(),
-                          coef = numeric(),
-                          se = numeric(),
-                          p_value = numeric(),
-                          adjusted_p_value = numeric(),
-                          stringsAsFactors = FALSE)
+qa_counts <- percent_T_cells_long %>%
+  group_by(Visit, Arm) %>%
+  summarize(
+    n_total = n_distinct(Sample),
+    n_kept  = n_distinct(Sample[include]),
+    n_excl_preL = n_distinct(Sample[!include & event & !is.na(landmark_days) & !is.na(t_event) & t_event <= landmark_days]),
+    .groups = "drop"
+  )
+print(qa_counts)
 
-# Loop through each cell type
+# Run Cox analysis 
+fit_cox <- function(dat) {
+  dat <- dat %>% filter(include)
+  if (nrow(dat) < 5 || dplyr::n_distinct(dat$Abundance) < 2 || sum(dat$event) < 1) return(NULL)
+  fit <- coxph(Surv(time_since_landmark, event) ~ Abundance, data = dat)
+  s   <- summary(fit)
+  tibble(
+    HR        = s$conf.int[1, "exp(coef)"],
+    Lower_CI  = s$conf.int[1, "lower .95"],
+    Upper_CI  = s$conf.int[1, "upper .95"],
+    coef      = s$coefficients[1, "coef"],
+    se        = s$coefficients[1, "se(coef)"],
+    p_value   = s$coefficients[1, "Pr(>|z|)"],
+    n_included = nrow(dat),
+    n_events   = sum(dat$event)
+  )
+}
+
+cell_types <- sort(unique(percent_T_cells_long$CellType))
+timepoints <- levels(percent_T_cells_long$Visit) %||% unique(percent_T_cells_long$Visit)
+
+cox_results <- tibble(
+  Cell_Type = character(), Arm = character(), Timepoint = character(),
+  HR = numeric(), Lower_CI = numeric(), Upper_CI = numeric(),
+  coef = numeric(), se = numeric(), p_value = numeric(),
+  n_included = integer(), n_events = integer()
+)
+
 for (cell in cell_types) {
   for (time in timepoints) {
-    # Subset data by cell type
-    subset_data <- subset(percent_T_cells_long, CellType == cell & Visit == time)
+    subset_data <- percent_T_cells_long %>%
+      filter(CellType == cell, Visit == time)
     
-    # Combined analysis (all samples together)
-    if (length(unique(subset_data$Abundance)) > 1) {
-      cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = subset_data)
-      
-      summary_cox <- summary(cox_model)
-      HR <- summary_cox$coefficients[1, "exp(coef)"]
-      Lower_CI <- summary_cox$conf.int[1, "lower .95"]
-      Upper_CI <- summary_cox$conf.int[1, "upper .95"]
-      coef <- summary_cox$coefficients[1, "coef"]
-      se <- summary_cox$coefficients[1, "se(coef)"]
-      p_value <- summary_cox$coefficients[1, "Pr(>|z|)"]
-      
-      # Store results for combined analysis
-      cox_results <- rbind(cox_results, data.frame(Cell_Type = cell,
-                                                   Arm = "All",  # Label for combined analysis
-                                                   HR = HR,
-                                                   Timepoint = time,
-                                                   Lower_CI = Lower_CI,
-                                                   Upper_CI = Upper_CI,
-                                                   coef = coef,
-                                                   se = se,
-                                                   p_value = p_value,
-                                                   stringsAsFactors = FALSE))
+    # All patients (pooled)
+    res_all <- fit_cox(subset_data)
+    if (!is.null(res_all)) {
+      cox_results <- bind_rows(
+        cox_results,
+        res_all %>% mutate(Cell_Type = cell, Arm = "All", Timepoint = time, .before = 1)
+      )
     } else {
-      message(paste("Skipping combined analysis for cell type", cell, "- no variability in 'Value'"))
+      message(sprintf("Skip ALL: %s @ %s (insufficient variation/events)", cell, time))
     }
     
-    # Separate analysis for Control and Experimental arms
-    for (arm in c("Control", "Experimental")) {
-      arm_data <- subset(subset_data, Arm == arm)
-      
-      if (length(unique(arm_data$Abundance)) > 1) {
-        cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Abundance, data = arm_data)
-        
-        summary_cox <- summary(cox_model)
-        HR <- summary_cox$coefficients[1, "exp(coef)"]
-        Lower_CI <- summary_cox$conf.int[1, "lower .95"]
-        Upper_CI <- summary_cox$conf.int[1, "upper .95"]
-        coef <- summary_cox$coefficients[1, "coef"]
-        se <- summary_cox$coefficients[1, "se(coef)"]
-        p_value <- summary_cox$coefficients[1, "Pr(>|z|)"]
-        
-        # Store results for each arm
-        cox_results <- rbind(cox_results, data.frame(Cell_Type = cell,
-                                                     Arm = arm,
-                                                     HR = HR,
-                                                     Timepoint = time,
-                                                     Lower_CI = Lower_CI,
-                                                     Upper_CI = Upper_CI,
-                                                     coef = coef,
-                                                     se = se,
-                                                     p_value = p_value,
-                                                     stringsAsFactors = FALSE))
+    # By Arm
+    for (arm in c("Control","Experimental")) {
+      res_arm <- fit_cox(subset_data %>% filter(Arm == arm))
+      if (!is.null(res_arm)) {
+        cox_results <- bind_rows(
+          cox_results,
+          res_arm %>% mutate(Cell_Type = cell, Arm = arm, Timepoint = time, .before = 1)
+        )
       } else {
-        message(paste("Skipping cell type", cell, "in arm", arm, "- no variability in 'Value'"))
+        message(sprintf("Skip %s: %s @ %s (insufficient variation/events)", arm, cell, time))
       }
     }
   }
 }
 
-cox_results_sig <- cox_results[cox_results$p_value < 0.05, ]
+# BH-FDR within each (Visit, Arm)
+cox_results <- cox_results %>%
+  group_by(Timepoint, Arm) %>%
+  mutate(adjusted_p_value = p.adjust(p_value, method = "BH")) %>%
+  ungroup()
 
-cox_results$signed_log10p <- sign(cox_results$coef) * (-log10(cox_results$p_value))
-cox_results$time_arm <- paste(cox_results$Arm, cox_results$Timepoint, sep = "_")
+cox_results_sig <- cox_results %>% filter(p_value < 0.05)
+
+cox_results <- cox_results %>%
+  mutate(
+    signed_log10p = sign(coef) * (-log10(p_value)),
+    time_arm = paste(Arm, Timepoint, sep = "_")
+  )
 
 wide_df <- cox_results %>%
   select(Cell_Type, time_arm, signed_log10p) %>%
-  pivot_wider(
-    names_from   = time_arm,
-    values_from  = signed_log10p
-  )
+  pivot_wider(names_from = time_arm, values_from = signed_log10p)
 
 mat <- wide_df %>%
-  tibble::column_to_rownames("Cell_Type") %>%
+  column_to_rownames("Cell_Type") %>%
   as.matrix()
 
-col_anno_df <- as.data.frame(colnames(mat))
-col_anno_df$Arm <- word(colnames(mat), 1, sep = "_")
-col_anno_df$Time <- word(colnames(mat), 2, sep = "_")
-col_anno_df <- column_to_rownames(col_anno_df, var = "colnames(mat)")
-col_anno_df <- col_anno_df[colnames(mat), ]
+col_anno_df <- data.frame(colnames(mat)) %>%
+  setNames("colname")
+col_anno_df$Arm  <- stringr::word(col_anno_df$colname, 1, sep = "_")
+col_anno_df$Time <- stringr::word(col_anno_df$colname, 2, sep = "_")
+rownames(col_anno_df) <- col_anno_df$colname
+col_anno_df <- col_anno_df[colnames(mat), , drop = FALSE]
 
 col_anno_df$Time <- factor(
   col_anno_df$Time,
-  levels = c(
-    "Prior to 1st Tx", 
-    "1 week Post Initiating treatment", 
-    "During RT", 
-    "Before Surgery", 
-    "3 mo Post-Surgery", 
-    "12 mo Post-Surgery"
-  )
+  levels = c("Prior to 1st Tx",
+             "1 week Post Initiating treatment",
+             "During RT",
+             "Before Surgery",
+             "3 mo Post-Surgery",
+             "12 mo Post-Surgery")
 )
-
-col_anno_df$Arm <- as.factor(col_anno_df$Arm)
+col_anno_df$Arm <- factor(col_anno_df$Arm, levels = c("Control","Experimental","All"))
 
 ord <- unlist(lapply(levels(col_anno_df$Arm), function(a){
   idx <- which(col_anno_df$Arm == a)
   idx[order(col_anno_df$Time[idx])]
 }))
+mat_ord         <- mat[, ord, drop = FALSE]
+col_anno_df_ord <- col_anno_df[ord, , drop = FALSE]
+col_anno_df_ord$colname <- NULL
 
-mat_ord        <- mat[,     ord]
-col_anno_df_ord<- col_anno_df[ord, ]
-
-annotation_column <- HeatmapAnnotation(df = col_anno_df_ord, col = list(Arm = c("Control" = "#9D1536", 
-                                                                                "Experimental" = "#0093AF",
-                                                                                "All" = "grey"), 
-                                                                        
-                                                                        Time = c("Prior to 1st Tx" = "#CC79A7", 
-                                                                                 "1 week Post Initiating treatment" = "#0072B2", 
-                                                                                 "Before Surgery" = "#56B4E9", 
-                                                                                 "During RT" = "#009E73", 
-                                                                                 "3 mo Post-Surgery"  = "#F5C710", 
-                                                                                 "12 mo Post-Surgery" = "#E69F00")),  
-                                       which = "column",
-                                       show_legend = T, show_annotation_name = F)
-
-# highlight significant associations 
-pairs <- list(
-  c("CD57.Effector", "All_12 mo Post-Surgery"), 
-  c("CD57.Effector", "Experimental_12 mo Post-Surgery")
+annotation_column <- HeatmapAnnotation(
+  df = col_anno_df_ord,
+  col = list(
+    Arm = c("Control" = "#9D1536", "Experimental" = "#0093AF", "All" = "grey"),
+    Time = c("Prior to 1st Tx" = "#CC79A7",
+             "1 week Post Initiating treatment" = "#0072B2",
+             "Before Surgery" = "#56B4E9",
+             "During RT" = "#009E73",
+             "3 mo Post-Surgery"  = "#F5C710",
+             "12 mo Post-Surgery" = "#E69F00")
+  ),
+  which = "column",
+  show_legend = TRUE, show_annotation_name = FALSE
 )
 
-highlight_pairs <- do.call(
-  rbind,
-  lapply(pairs, \(x) data.frame(g1 = x[1], g2 = x[2],
-                                stringsAsFactors = FALSE))
+ht <- Heatmap(
+  mat_ord,
+  top_annotation = annotation_column,
+  column_split = as.factor(col_anno_df_ord$Arm),
+  show_column_names = FALSE,
+  cluster_column_slices = FALSE,
+  cluster_columns = FALSE,
+  name = "signed_p",
+  heatmap_width = unit(20, "cm"),
+  heatmap_height = unit(15, "cm"),
+  col = colorRamp2(c(min(mat, na.rm=TRUE), 0, max(mat, na.rm=TRUE)),
+                   c("#4575b4", "white", "#d73027"))
 )
 
-stars <- matrix(FALSE, nrow(mat_ord), ncol(mat_ord),
-                dimnames = dimnames(mat_ord))
-for(k in seq_len(nrow(highlight_pairs))){
-  r <- highlight_pairs$g1[k]
-  c <- highlight_pairs$g2[k]
-  if(r %in% rownames(stars) && c %in% colnames(stars)){
-    stars[r, c] <- TRUE
-  }
-  if(c %in% rownames(stars) && r %in% colnames(stars)){
-    stars[c, r] <- TRUE
-  }
-}
-
-
-ht <- Heatmap(mat, top_annotation = annotation_column,
-              column_split = as.factor(col_anno_df_ord$Arm),
-              show_column_names = F,
-              cluster_column_slices = F,
-              cluster_columns = F,
-              name = "signed_p",
-              heatmap_width = unit(20, "cm"), 
-              heatmap_height = unit(15, "cm"),
-              col = colorRamp2(c(min(mat), 0, max(mat)), c("#4575b4", "white", "#d73027")),
-              cell_fun = function(j, i, x, y, width, height, fill){
-                if(stars[i, j])                     # row index i, col j
-                  grid.text("*", x, y,
-                            gp = gpar(fontsize = 30,
-                                      col = "black",
-                                      fontface = "bold"))
-              }
-)
-
-ht <- draw(ht, heatmap_legend_side = "right", 
-           annotation_legend_side = "right", 
-           merge_legend = TRUE)
+ht <- draw(ht, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legend = TRUE)
 w = ComplexHeatmap:::width(ht)
 w = convertX(w, "inch", valueOnly = TRUE)
 h = ComplexHeatmap:::height(ht)
@@ -1995,14 +2009,15 @@ pdf(".../cox_heatmap_Tcells_CLR.pdf",
 draw(ht)
 dev.off()
 
-
 # CIBERSORTx TR4-correction of scRNA-seq deconvolution -----
-evaluable_patients <- SIC_and_SE_assignments$`SRC code`
+evaluable_patients <- SIC_and_SE_assignments$Patient
 
-TR4 <- fread('/.../data/TR4_CPM.txt')
-cibersortx_homegrown_UMI_new_cd45neg <- fread('.../data/scRNA_seq_CIBERSORTx_non_immune_cells.csv')
+TR4 <- fread('.../data/TR4_CPM_final.csv')
+TR4$V1 <- NULL
+TR4$V1 <- NULL
+cibersortx_homegrown_UMI_new_cd45neg <- fread('...data/scRNA_seq_CIBERSORTx_non_immune_cells_final.csv')
 cibersortx_homegrown_UMI_new_cd45neg$V1 <- NULL
-cibersortx_homegrown_UMI_new_cd45pos <- fread('.../data//scRNA_seq_CIBERSORTx_immune_cells.csv')
+cibersortx_homegrown_UMI_new_cd45pos <- fread('...data/scRNA_seq_CIBERSORTx_immune_cells_final.csv')
 cibersortx_homegrown_UMI_new_cd45pos$V1 <- NULL
 
 TR4 <- TR4 %>% select(-`P-value`, -Correlation, -RMSE)
@@ -2014,38 +2029,42 @@ combo <- TR4 %>% inner_join(cibersortx_homegrown_UMI_new_cd45neg, by = "Mixture"
 combo <- combo %>% inner_join(cibersortx_homegrown_UMI_new_cd45pos, by = "Mixture")
 
 combo_adjusted <- combo %>%
-  mutate(across(all_of(setdiff(names(cibersortx_homegrown_UMI_new_cd45pos), "Mixture")), ~ .x * CD45)) %>% 
-  mutate(across(all_of(setdiff(names(cibersortx_homegrown_UMI_new_cd45neg), "Mixture")), ~ .x * CD45neg))
+  mutate(across(all_of(setdiff(names(cibersortx_homegrown_UMI_new_cd45pos), c("Mixture", "timepoint", "patient_id"))), ~ .x * CD45)) %>% 
+  mutate(across(all_of(setdiff(names(cibersortx_homegrown_UMI_new_cd45neg), c("Mixture", "timepoint", "patient_id"))), ~ .x * CD45neg))
 
 combo_adjusted <- combo_adjusted %>% select(-c(CD45 ,CD45neg, 
                                                CD10, CD31, 
                                                EPCAM))
 
-combo_adjusted <- combo_adjusted %>%
-  mutate(patient = str_extract(Mixture, "^[^_]+"),
-         timepoint = str_extract(Mixture, "(?<=_).+")) %>%
-  select(-Mixture)
-
 # retain only evaluable patients 
 combo_adjusted <- combo_adjusted %>% 
-  filter(patient %in% SIC_and_SE_assignments$`SRC code`)
+  filter(patient_id %in% SIC_and_SE_assignments$Patient)
+
+combo_adjusted$timepoint.x <- NULL
+combo_adjusted$patient_id.x <- NULL
+combo_adjusted$timepoint.y <- NULL
+combo_adjusted$patient_id.y <- NULL
 
 # Separate the data by timepoints
-T1 <- combo_adjusted %>% filter(timepoint == "T1")
-T2 <- combo_adjusted %>% filter(timepoint == "T2")
+T1 <- combo_adjusted %>% filter(timepoint == "pre_treatment")
+T2 <- combo_adjusted %>% filter(timepoint == "surgical_resection")
 
 combined_rejoined_cpm_tr4_init <- rbind(T1, T2)
 
 combined_rejoined_cpm_tr4_init <- as.data.frame(combined_rejoined_cpm_tr4_init)
 
-rownames(combined_rejoined_cpm_tr4_init) <- paste(combined_rejoined_cpm_tr4_init$patient, 
-                                                  combined_rejoined_cpm_tr4_init$timepoint, sep = "_")
+#rownames(combined_rejoined_cpm_tr4_init) <- paste(combined_rejoined_cpm_tr4_init$patient, combined_rejoined_cpm_tr4_init$timepoint, sep = "_")
+rownames(combined_rejoined_cpm_tr4_init) <- combined_rejoined_cpm_tr4_init$Mixture
 
 # Figure 5B ----
+combined_rejoined_cpm_tr4_init$timepoint[combined_rejoined_cpm_tr4_init$timepoint == "pre_treatment"] <- "T1"
+combined_rejoined_cpm_tr4_init$timepoint[combined_rejoined_cpm_tr4_init$timepoint == "surgical_resection"] <- "T2"
+
 T1_CLR <- combined_rejoined_cpm_tr4_init[combined_rejoined_cpm_tr4_init$timepoint == "T1", ]
 
-rownames(T1_CLR) <- paste(T1_CLR$patient, 
-                          T1_CLR$timepoint, sep = "_")
+#rownames(T1_CLR) <- paste(T1_CLR$patient, T1_CLR$timepoint, sep = "_")
+
+T1_CLR$Mixture <- NULL
 
 T1_CLR <- T1_CLR[, -c(42, 43)]
 T1_CLR <- compositions::clr(as.matrix(T1_CLR)) 
@@ -2069,9 +2088,12 @@ cibersortx_long_T1 <- df %>%
     values_to  = "Value"
 )
 
+src2id <- setNames(names(src_lookup), unname(src_lookup))
+cibersortx_long_T1$Sample <- src2id[cibersortx_long_T1$Sample]
+
 cibersortx_long_T1 <- cibersortx_long_T1 %>% 
   left_join(SIC_and_SE_assignments,
-            by = c("Sample" = "SRC code"))
+            by = c("Sample" = "Patient"))
 
 cell_types <- unique(cibersortx_long_T1$Cell_Type)
 
@@ -2250,8 +2272,9 @@ ggsave(barplot_double_faceted_T1, width = 22, height = 20, units = "cm",
 # Figure 5C ----
 T1_CLR <- combined_rejoined_cpm_tr4_init[combined_rejoined_cpm_tr4_init$timepoint == "T1", ]
 
-rownames(T1_CLR) <- paste(T1_CLR$patient, 
-                          T1_CLR$timepoint, sep = "_")
+#rownames(T1_CLR) <- paste(T1_CLR$patient, T1_CLR$timepoint, sep = "_")
+
+T1_CLR$Mixture <- NULL
 
 T1_CLR <- T1_CLR[, -c(42, 43)]
 T1_CLR <- compositions::clr(as.matrix(T1_CLR)) 
@@ -2262,9 +2285,13 @@ tumor_long <- as.data.frame(T1_CLR) %>%
 
 tumor_long$Sample <- gsub("_T1", "", tumor_long$Sample)
 
+src2id <- setNames(names(src_lookup), unname(src_lookup))
+
+tumor_long$Sample <- src2id[tumor_long$Sample]
+
 data_for_analysis <- tumor_long %>%
-  inner_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Immune Class")],
-             by = c("Sample" = "SRC code"))
+  inner_join(SIC_and_SE_assignments[, c("Patient", "Sarcoma Immune Class")],
+             by = c("Sample" = "Patient"))
 
 colnames(data_for_analysis)[colnames(data_for_analysis) == "Sarcoma Immune Class"] <- "Sarcoma Immune Class"
 
@@ -2291,11 +2318,16 @@ sig_np <- pairwise_np %>% filter(signif == "yes")
 
 selected_cells <- union(significant_cells_sics, unique(sig_np$CellType))
 
+plot_cells <- setdiff(selected_cells, c("Vascular CAFs", "CD4+ Stressed", 
+                                        "CD4+ Th17", 
+                                        "Capillary Venous Endothelial Cells", 
+                                        "STS Immunomodulatory"))
+
 my_comparisons <- list( c("E", "D"), c("E", "C"), c("E", "B"), c("E", "A"))
 
 Sarcoma_Immune_Class_palette = c("A" = "#1f78b4", "B" = "#a6cee3", "C" = "#33a02c", "D" = "#fdbf6f", "E" = "#e31a1c")
 
-swarm_violin <- ggplot(data_for_analysis %>% filter(CellType %in% selected_cells), 
+swarm_violin <- ggplot(data_for_analysis %>% filter(CellType %in% plot_cells), 
                        aes(x = Sarcoma_Immune_Class, y = CLR, fill = Sarcoma_Immune_Class)) +
   geom_violin(alpha = 0.2, trim = T, scale = "width") +
   geom_quasirandom(shape = 21, size = 1.5, stroke = 0.5, alpha = 1, method = "smiley") +
@@ -2327,9 +2359,12 @@ tumor_long <- as.data.frame(T1_CLR) %>%
 
 tumor_long$Sample <- gsub("_T1", "", tumor_long$Sample)
 
+src2id <- setNames(names(src_lookup), unname(src_lookup))
+tumor_long$Sample <- src2id[tumor_long$Sample]
+
 data_for_analysis <- tumor_long %>%
-  inner_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Ecotype Assignment")],
-             by = c("Sample" = "SRC code"))
+  inner_join(SIC_and_SE_assignments[, c("Patient", "Sarcoma Ecotype Assignment")],
+             by = c("Sample" = "Patient"))
 
 data_for_analysis <- data_for_analysis[!(is.na(data_for_analysis$`Sarcoma Ecotype Assignment`)), ]
 
@@ -2354,6 +2389,8 @@ pairwise_np <- data_for_analysis %>%
 
 sig_np <- pairwise_np %>% filter(signif == "yes")
 selected_cells <- union(significant_cells_ecotypes, unique(sig_np$CellType))
+plot_cells <- setdiff(selected_cells, c("CD4+ Th17", "STS Immunomodulatory", "STS Immunomodulatory"))
+plot_cells <- union(plot_cells, c("M2 TREM2+ SPP1+", "CD4+ Tn"))
 
 # Specify the comparisons you want
 my_comparisons <- list( c("SE2", "SE1"), c("SE3", "SE2"), c("SE3", "SE1"))
@@ -2362,7 +2399,7 @@ ecotyper_palette = c("SE1" = "#F06180", "SE2" = "#0F9ABE", "SE3" = "#60C1A5")
 
 swarm_violin_eco <- ggplot(
   data_for_analysis %>% 
-    filter(CellType %in% setdiff(selected_cells, "CD4+ Tctl")) %>% 
+    filter(CellType %in% plot_cells) %>% 
     filter(`Sarcoma Ecotype Assignment` != "NA"),
   aes(x = ecotype_assignment, y = CLR, fill = ecotype_assignment)
 ) +
@@ -2394,8 +2431,9 @@ ggsave(swarm_violin_eco,
 # Figure 6B ----
 T2_CLR <- combined_rejoined_cpm_tr4_init[combined_rejoined_cpm_tr4_init$timepoint == "T2", ]
 
-rownames(T2_CLR) <- paste(T2_CLR$patient, 
-                          T2_CLR$timepoint, sep = "_")
+#rownames(T2_CLR) <- paste(T2_CLR$patient, T2_CLR$timepoint, sep = "_")
+
+T2_CLR$Mixture <- NULL
 
 T2_CLR <- T2_CLR[, -c(42, 43)]
 T2_CLR <- compositions::clr(as.matrix(T2_CLR)) 
@@ -2418,9 +2456,20 @@ cibersortx_long_T2 <- df %>%
     values_to  = "Value"
   )
 
+src2id <- setNames(names(src_lookup), unname(src_lookup))
+cibersortx_long_T2$Sample <- src2id[cibersortx_long_T2$Sample]
+
 cibersortx_long_T2 <- cibersortx_long_T2 %>% 
   left_join(SIC_and_SE_assignments,
-            by = c("Sample" = "SRC code"))
+            by = c("Sample" = "Patient"))
+
+surgery_timing <- fread('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/updated_time_cytof/SARC032_surgery_timing.csv')
+
+cibersortx_long_T2 <- cibersortx_long_T2 %>% 
+  left_join(surgery_timing, by = c("Sample" = "Subject"))
+
+# Adjust DFS time to subtract time from enrollment to surgery 
+cibersortx_long_T2$new_dfs_time <- cibersortx_long_T2$`DFS Time (Days)` - cibersortx_long_T2$time_from_enrollment_to_surgery_days
 
 cell_types <- unique(cibersortx_long_T2$Cell_Type)
 
@@ -2443,7 +2492,7 @@ for (cell in cell_types) {
   
   # Combined analysis (all samples together)
   if (length(unique(subset_data$Value)) > 1) {
-    cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Value, data = subset_data)
+    cox_model <- coxph(Surv(new_dfs_time, `DFS Event` == "Event occurred") ~ Value, data = subset_data)
     
     summary_cox <- summary(cox_model)
     HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -2472,7 +2521,7 @@ for (cell in cell_types) {
     arm_data <- subset(subset_data, `Treatment Arm` == arm)
     
     if (length(unique(arm_data$Value)) > 1) {
-      cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Value, data = arm_data)
+      cox_model <- coxph(Surv(new_dfs_time, `DFS Event` == "Event occurred") ~ Value, data = arm_data)
       
       summary_cox <- summary(cox_model)
       HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -2508,21 +2557,30 @@ cells_sel <- c("STS Epithelial-like",
                "Vascular CAFs")
 
 cox_results_sig <- cox_results[cox_results$p_value < 0.05 | cox_results$Cell_Type %in% cells_sel, ]
+# Create the data frame 'dt' for the forest plot
+#dt <- cox_results_sig
 dt <- cox_results
+# Rename columns to match 'forest()' function requirements
 dt$est <- log(dt$HR)
 dt$low <- log(dt$Lower_CI)
 dt$hi <- log(dt$Upper_CI)
+# Optional: Round the estimates and confidence intervals for display
 dt$est_formatted <- sprintf("%.2f", dt$est)
 dt$ci_formatted <- sprintf("(%.2f - %.2f)", dt$low, dt$hi)
+# Create a column combining the estimate and CI for display
 dt$Effect_CI <- paste0(dt$est_formatted, " ", dt$ci_formatted)
 dt$Cell_Type_copy <- dt$Cell_Type
 dt$Cell_Type <- paste(dt$Cell_Type, dt$Arm, sep = "_")
 dt <- dt[dt$Cell_Type_copy %in% cox_results_sig$Cell_Type, ]
+#Rearrange columns as needed
 dt <- dt[, c("Cell_Type", "est", "low", "hi", "se", "p_value", "Effect_CI")]
 dt <- dt %>% 
   arrange(Cell_Type)
 plot_data <- dt[, c("Cell_Type", "Effect_CI", "p_value")]
+# Rename columns for better display
 colnames(plot_data) <- c("Cell Type", "Hazard Ratio (95% CI)", "P-value")
+# Convert p-values to formatted strings
+#plot_data$`P-value` <- sprintf("%.3f", plot_data$`P-value`)
 plot_data[, 4] <- ""
 colnames(plot_data)[colnames(plot_data) == "V4"] <- "                                                     "
 plot_data$`Cell Type` <- ifelse(grepl("Control|Experimental", plot_data$`Cell Type`), 
@@ -2537,11 +2595,13 @@ plot_data <- plot_data %>%
     signed_log10p = sign(cox_coef) * (-log10(`P-value`))
   )
 
+# define broad categories of cell types 
 plot_data <- plot_data %>%
   mutate(
     Category = case_when(
       str_detect(`Cell Type`, "CD4\\+") ~ "Lymphoid Cells",
       str_detect(`Cell Type`, "CD8\\+") ~ "Lymphoid Cells",
+      #str_detect(`Cell Type`, "DCs") ~ "Myeloid Cells",
       str_detect(`Cell Type`, "Mastocytes") ~ "Myeloid Cells",
       str_detect(`Cell Type`, "Proinflammatory PMNs") ~ "Myeloid Cells",
       str_detect(`Cell Type`, "CAF") ~ "CAFs",
@@ -2559,6 +2619,7 @@ plot_data <- plot_data %>%
       grepl("_All", `Cell Type`)          ~ "Both",
       TRUE                                ~ "Unknown"
     ),
+    # Then remove the suffix from Cell Type so that it doesn’t clutter the facet
     `Cell Type` = str_replace_all(`Cell Type`, "_Control|_Experimental|_All", "")
   )
 
@@ -2575,7 +2636,10 @@ barplot_double_faceted_T2 <- ggplot(
     midpoint = 0,
     name = "Signed -log10(p)\n(blue = better DFS,\n red = worse DFS)"
   ) +
-
+  
+  # Suppose you want rows = Arm, columns = Category
+  # so that you see, for each Category, subpanels for
+  # Control/Experimental/Both in separate rows (or vice versa).
   facet_grid(Arm ~ Category, scales = "free_x", space = "free_x") +
   
   geom_hline(yintercept = c(-1.3, 0, 1.3), 
@@ -2589,17 +2653,18 @@ barplot_double_faceted_T2 <- ggplot(
     axis.text.x = element_text(angle = 45, hjust = 1)
   ) +
   labs(
-    x = NULL,  
+    x = NULL,  # we often omit x label if it's just "Cell Type"
     y = "–log10(p) Cox PH",
     title = "Cox DFS T2 - All in One Plot"
   ) + 
   ylim(c(-2,2))
 
+
 ggsave(barplot_double_faceted_T2, width = 22, height = 16, units = "cm", 
        filename = '.../T2_cibersottx_DFS_by_macrogroup_triple_faceted_CLR.pdf')
 
 # Figure 6E ----
-combined_rejoined_cpm_tr4_CLR <- compositions::clr(as.matrix(combined_rejoined_cpm_tr4_init[, -c(42, 43)])) 
+combined_rejoined_cpm_tr4_CLR <- compositions::clr(as.matrix(combined_rejoined_cpm_tr4_init[, -c(1, 43, 44)])) 
 
 combined_rejoined_cpm_tr4_CLR <-  combined_rejoined_cpm_tr4_CLR %>%
   as.data.frame(combined_rejoined_cpm_tr4_CLR) %>% 
@@ -2616,8 +2681,11 @@ colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "patient"
 colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "timepoint"] <- "Time_Point"
 cibersortx_long_cpm_tr4$Sample[cibersortx_long_cpm_tr4$Sample == "SRC77_b"] <- "SRC77"
 
+src2id <- setNames(names(src_lookup), unname(src_lookup))
+cibersortx_long_cpm_tr4$Sample <- src2id[cibersortx_long_cpm_tr4$Sample]
+
 cibersortx_long_cpm_tr4 <- cibersortx_long_cpm_tr4 %>% 
-  left_join(SIC_and_SE_assignments, by = c("Sample" = "SRC code"))
+  left_join(SIC_and_SE_assignments, by = c("Sample" = "Patient"))
 
 cibersortx_long_cpm_tr4 <- cibersortx_long_cpm_tr4[!(cibersortx_long_cpm_tr4$Sample %in% "SRC102b"), ]
 
@@ -2709,8 +2777,7 @@ ggsave(non_immune_selected,
        units = "cm", width = 15, height = 15)
 
 immunecells_selected_toplot <- c("CD8+ Early Activation",
-                                 "CD4+ Tcm", "CD4+ Tfh", "M2 SELENOP+ SLC40A1+",
-                                 "Immunoregulatroy PMNs")
+                                 "CD4+ T memory", "CD4+ Tfh", "Macro SELENOP+ SLC40A1+")
 
 immune_selected <- ggplot(
   cibersortx_long_cpm_tr4[cibersortx_long_cpm_tr4$Cell_Type %in% immunecells_selected_toplot, ],
@@ -2760,7 +2827,7 @@ ggsave(necrosis_evaluable_wilcox,
        units = "cm", width = 8, height = 10, 
        filename = ".../necrosis_box_evaluable.pdf")
 
-# Figure S5A ----
+# Figure S6A ----
 path_data_filtered <- SIC_and_SE_assignments %>%
   mutate(necrosis = `Percent Necrosis`) %>% 
   mutate(
@@ -2851,7 +2918,7 @@ p_dfs_sq <- p_dfs_sq + theme_pubr(border = T)
 
 
 # Figure 6F ----
-ecotype_abundance <- read_excel('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx', 
+ecotype_abundance <- read_excel('.../data/Supplementary_Tables.xlsx', 
                                 sheet = 12)
 
 colnames(ecotype_abundance) <- ecotype_abundance[2, ]
@@ -2927,8 +2994,8 @@ df_wide_test_results <- df_wide_test %>%
 df_wide_test_results$fdr <- p.adjust(df_wide_test_results$p_value, method = "BH")
 
 
-# Figure Supplemental 1D ----
-tcell_inflamed_data <- read_excel('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/Supplementary_Tables_2025-09-01.xlsx', 
+# Figure Supplemental 2D ----
+tcell_inflamed_data <- read_excel('.../data//Supplementary_Tables.xlsx', 
                                   sheet = 2)
 colnames(tcell_inflamed_data) <- tcell_inflamed_data[2,]
 
@@ -2939,9 +3006,8 @@ tcell_inflamed_data$`T cell-inflamed GEP` <- as.numeric(tcell_inflamed_data$`T c
 tcell_inflamed_data$Patient <- as.character(tcell_inflamed_data$Patient)
 
 tcell_inflamed_data <- tcell_inflamed_data %>% 
-  left_join(SIC_and_SE_assignments, by = c("Patient", "SRC code", 
+  left_join(SIC_and_SE_assignments, by = c("Patient", 
                                            "Treatment Arm"))
-
 
 cox_results <- data.frame(Signature = character(),
                           Arm = character(),
@@ -2959,7 +3025,7 @@ sigs <- "T cell-inflamed GEP"
 for (signature in sigs) {
   # Subset data by cell type
   tcell_inflamed_data$Time_Point <- tcell_inflamed_data$`Time Point`
-  subset_data <- tcell_inflamed_data[tcell_inflamed_data$Time_Point == "Pre-treatment", c("SRC code", signature, 
+  subset_data <- tcell_inflamed_data[tcell_inflamed_data$Time_Point == "Pre-treatment", c(signature, 
                                                                                "Treatment Arm", 
                                                                                "DFS Event", 
                                                                                "DFS Time (Days)")]
@@ -3053,9 +3119,7 @@ p <- forest(
 )
 p
 
-
-
-# Figure Supplemental 1E ----
+# Figure Supplemental 2E ----
 Sarcoma_Immune_Class_palette = c("A" = "#1f78b4", "B" = "#a6cee3", "C" = "#33a02c", "D" = "#fdbf6f", "E" = "#e31a1c")
 my_comparisons <- list( c("E", "D"), c("E", "C"), c("E", "B"), c("E", "A"))
 
@@ -3078,7 +3142,7 @@ pairwise_dunn <- tcell_inflamed_data %>%
   dunn_test(IFNy_expanded_avg ~ Sarcoma_Immune_Class, p.adjust.method = "BH") %>%
   mutate(signif = ifelse(p.adj < 0.05, "yes", "no"))
 
-# Figure Supplemental 1F ----
+# Figure Supplemental 2F ----
 ecotyper_palette = c("SE1" = "#F06180", "SE2" = "#0F9ABE", "SE3" = "#60C1A5")
 my_comparisons <- list( c("SE2", "SE1"), c("SE3", "SE2"), c("SE3", "SE1"))
 
@@ -3103,7 +3167,7 @@ pairwise_dunn <- tcell_inflamed_data %>%
   mutate(signif = ifelse(p.adj < 0.05, "yes", "no"))
 
 
-# Figure 6G and Figure Supplemental 5I ----
+# Figure 6G and Figure Supplemental 6I ----
 # ensure T1 before T2
 tcell_inflamed_data <- tcell_inflamed_data %>%
   mutate(Time_Point = factor(Time_Point, levels = c("Pre-treatment",
@@ -3227,11 +3291,11 @@ SE_change2 <-
   theme_pubr(border = TRUE) +
   theme(strip.text = element_text(size = 14))
 
-# Figure Supplemental 1G ----
+# Figure Supplemental 2G ----
 # Load RNA seq data 
-T1_mixture <- fread('.../SARC32_tillNova56_QC_tpm_T1only.txt')
+T1_mixture <- fread('...data/SARC32_tpm_T1only.txt')
 T1_mixture <- as.data.frame(T1_mixture)
-T2_mixture <- fread('.../SARC32_tillNova56_QC_tpm_T2only.txt')
+T2_mixture <- fread('...data/SARC32_tpm_T2only.txt')
 T2_mixture <- as.data.frame(T2_mixture)
 T1_T2_mixture <- T1_mixture %>% 
   left_join(T2_mixture)
@@ -3259,13 +3323,25 @@ IC_genes <- IC_genes[-1, ]
 IC_genes <- IC_genes %>%
   dplyr::mutate(across(where(is.character), as.numeric))
 IC_genes <- rownames_to_column(IC_genes, var = "Mixture")
+
 IC_genes <- IC_genes %>%
   mutate(patient = str_extract(Mixture, "^[^_]+"))
 IC_genes <- IC_genes %>%
   mutate(timepoint = str_extract(Mixture, "(?<=_).+"))
 
+src2id <- setNames(names(src_lookup), unname(src_lookup))
+IC_genes$patient <- src2id[IC_genes$patient]
+
 IC_genes <- IC_genes %>% 
-  left_join(SIC_and_SE_assignments, by = c("patient" = "SRC code"))
+  left_join(SIC_and_SE_assignments, by = c("patient" = "Patient"))
+
+IC_genes <- IC_genes %>% 
+  left_join(surgery_timing, by = c("patient" = "Subject"))
+
+# Adjust DFS time for post-treatment DFS correlations
+IC_genes$new_dfs_time <- IC_genes$`DFS Time (Days)` - IC_genes$time_from_enrollment_to_surgery_days
+
+IC_genes <- IC_genes[IC_genes$patient %in% SIC_and_SE_assignments$Patient, ]
 
 # Initialize a data frame to store Cox PH results
 cox_results <- data.frame(Gene = character(),
@@ -3402,7 +3478,7 @@ p <- forest(
 )
 p
 
-# Figure Supplemental 1H ----
+# Figure Supplemental 2H ----
 # T1 -- CTLA4
 subset_data <- IC_genes[IC_genes$timepoint == "T1", ]
 threshold <- quantile(IC_genes$CTLA4, 0.5, na.rm = TRUE)
@@ -3420,17 +3496,15 @@ ctla4_survplot <- ggsurvplot(surv_fit, data = subset_data,
                              legend.title = "CTLA4 Status")
 
 coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
-summary(cox_model)
-summary_cox$coefficients
 
 ggsave(ctla4_survplot$plot,
        width = 8, height = 10, units = "cm",
-       filename = '/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/Digital_cytometry/Immune_checkpoints/CTLA4_T1.pdf')
+       filename = '.../CTLA4_T1.pdf')
 ggsave(ctla4_survplot$table,
        width = 20, height = 4, units = "cm",
-       filename = '/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/Digital_cytometry/Immune_checkpoints/CTLA4_T1_table.pdf')
+       filename = '.../CTLA4_T1_table.pdf')
 
-# Figure Supplemental 1I ----
+# Figure Supplemental 2I ----
 # T1 -- TIGIT
 subset_data <- IC_genes[IC_genes$timepoint == "T1", ]
 threshold <- quantile(IC_genes$TIGIT, 0.5, na.rm = TRUE)
@@ -3452,15 +3526,12 @@ summary_cox$coefficients
 
 ggsave(tigit_survplot$plot,
        width = 8, height = 10, units = "cm",
-       filename = '/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/Digital_cytometry/Immune_checkpoints/TIGIT_T1.pdf')
+       filename = '.../Immune_checkpoints/TIGIT_T1.pdf')
 ggsave(tigit_survplot$table,
        width = 20, height = 4, units = "cm",
-       filename = '/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/Digital_cytometry/Immune_checkpoints/TIGIT_T1_table.pdf')
+       filename = '.../TIGIT_T1_table.pdf')
 
-
-
-
-# Figure Supplemental 5B ----
+# Figure Supplemental 6B ----
 cox_results <- data.frame(Gene = character(),
                           Arm = character(),
                           HR = numeric(),
@@ -3476,14 +3547,14 @@ for (gene in IC_targets) {
   subset_data <- IC_genes[IC_genes$timepoint == "T2", c("Mixture", gene, 
                                                         "Treatment Arm", 
                                                         "DFS Event", 
-                                                        "DFS Time (Days)",
+                                                        "new_dfs_time", 
                                                         "timepoint", "patient")]
   str(subset_data)
   print(paste("Gene:", gene))
   print(length(subset_data[[gene]]))
   print(dim(subset_data))
   
-  cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ subset_data[[gene]], data = subset_data)
+  cox_model <- coxph(Surv(new_dfs_time, `DFS Event` == "Event occurred") ~ subset_data[[gene]], data = subset_data)
   
   summary_cox <- summary(cox_model)
   HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -3508,7 +3579,7 @@ for (gene in IC_targets) {
     arm_data <- subset(subset_data, `Treatment Arm` == arm)
     str(arm_data)
     
-    cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ arm_data[[gene]], data = arm_data)
+    cox_model <- coxph(Surv(new_dfs_time, `DFS Event` == "Event occurred") ~ arm_data[[gene]], data = arm_data)
     
     summary_cox <- summary(cox_model)
     HR <- summary_cox$coefficients[1, "exp(coef)"]
@@ -3532,6 +3603,7 @@ for (gene in IC_targets) {
 
 cox_results_sig <- cox_results[cox_results$p_value < 0.05, ]
 
+cox_results_sig <- cox_results_sig[cox_results_sig$Gene != "TNFSF14", ]
 dt <- cox_results
 dt$est <- log(dt$HR)
 dt$low <- log(dt$Lower_CI)
@@ -3565,34 +3637,7 @@ p <- forest(
 )
 p
 
-
-# Figure Supplemental 5C ----
-subset_data <- IC_genes[IC_genes$timepoint == "T2", ]
-threshold <- quantile(IC_genes$NCR3LG1, 0.5, na.rm = TRUE)
-subset_data$Fraction <- ifelse(subset_data$NCR3LG1 > threshold, "High", "Low")
-subset_data$Arm <- subset_data$`Treatment Arm`
-surv_fit <- survfit(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
-b7h6_survplot <- ggsurvplot(surv_fit, data = subset_data,
-                            pval = T, 
-                            pval.method = T,
-                            risk.table = TRUE, 
-                            palette = c("#ee9b00", "#9b2226", "#90e0ef", "#0077b6"),
-                            xlab = "Days", ylab = "Survival Probability", 
-                            title = "Disease Free Survival",
-                            legend.title = "NCR3LG1 Status")
-
-cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
-summary_cox <- summary(cox_model)
-summary_cox$coefficients
-
-ggsave(b7h6_survplot$plot,
-       width = 8, height = 10, units = "cm",
-       filename = '.../B7H6_T1.pdf')
-ggsave(b7h6_survplot$table,
-       width = 20, height = 4, units = "cm",
-       filename = '.../B7H6_T1_table.pdf')
-
-# Figure Supplemental 5D ----
+# Figure Supplemental 6C ----
 subset_data <- IC_genes[IC_genes$timepoint == "T2", ]
 threshold <- quantile(IC_genes$PDCD1, 0.5, na.rm = TRUE)
 subset_data$Fraction <- ifelse(subset_data$PDCD1 > threshold, "High", "Low")
@@ -3613,12 +3658,106 @@ summary_cox$coefficients
 
 ggsave(PDCD1_survplot$plot,
        width = 8, height = 10, units = "cm",
-       filename = '.../PD1_T1.pdf')
+       filename = '.../PD1_T2.pdf')
 ggsave(PDCD1_survplot$table,
        width = 20, height = 4, units = "cm",
-       filename = '.../PD1_T1_table.pdf')
+       filename = '.../PD1_T2_table.pdf')
 
-# Figure Supplemental 5E/5F ----
+subset_data$Fraction <- factor(subset_data$Fraction, levels = c("Low","High"))
+fit_int <- coxph(Surv(new_dfs_time, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
+sm <- summary(fit_int)
+
+#p_int <- sm$coefficients["FractionHigh:ArmExperimental","Pr(>|z|)"]
+
+b <- coef(fit_int); V <- vcov(fit_int)
+
+lincomb <- function(L) {
+  logHR <- sum(L * b)
+  se    <- sqrt(as.numeric(t(L) %*% V %*% L))
+  z     <- logHR / se
+  p     <- 2 * pnorm(abs(z), lower.tail = FALSE)
+  tibble(HR = exp(logHR),
+         CI_low = exp(logHR - 1.96*se),
+         CI_high= exp(logHR + 1.96*se),
+         p_value = p)
+}
+
+L_ctrl <- c("FractionHigh"=1, "ArmExperimental"=0, "FractionHigh:ArmExperimental"=0)
+res_ctrl <- lincomb(L_ctrl) %>%
+  mutate(Arm = "Control",
+         label = sprintf("High vs Low: HR=%.2f (%.2f–%.2f), p=%.3f",
+                         HR, CI_low, CI_high, p_value))
+L_exp  <- c("FractionHigh"=1, "ArmExperimental"=0, "FractionHigh:ArmExperimental"=1)
+res_exp <- lincomb(L_exp) %>%
+  mutate(Arm = "Experimental",
+         label = sprintf("High vs Low: HR=%.2f (%.2f–%.2f), p=%.3f",
+                         HR, CI_low, CI_high, p_value))
+
+# HRs High vs low in control vs experimental 
+res_arm <- bind_rows(res_ctrl, res_exp)
+
+
+# Figure Supplemental 6D ----
+subset_data <- IC_genes[IC_genes$timepoint == "T2", ]
+threshold <- quantile(IC_genes$NCR3LG1, 0.5, na.rm = TRUE)
+subset_data$Fraction <- ifelse(subset_data$NCR3LG1 > threshold, "High", "Low")
+subset_data$Arm <- subset_data$`Treatment Arm`
+surv_fit <- survfit(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction + Arm, data = subset_data)
+b7h6_survplot <- ggsurvplot(surv_fit, data = subset_data,
+                            pval = T, 
+                            pval.method = T,
+                            risk.table = TRUE, 
+                            palette = c("#ee9b00", "#9b2226", "#90e0ef", "#0077b6"),
+                            xlab = "Days", ylab = "Survival Probability", 
+                            title = "Disease Free Survival",
+                            legend.title = "NCR3LG1 Status")
+
+cox_model <- coxph(Surv(`DFS Time (Days)`, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
+summary_cox <- summary(cox_model)
+summary_cox$coefficients
+
+ggsave(b7h6_survplot$plot,
+       width = 8, height = 10, units = "cm",
+       filename = '.../B7H6_T2.pdf')
+ggsave(b7h6_survplot$table,
+       width = 20, height = 4, units = "cm",
+       filename = '.../B7H6_T2_table.pdf')
+
+subset_data$Fraction <- factor(subset_data$Fraction, levels = c("Low","High"))
+fit_int <- coxph(Surv(new_dfs_time, `DFS Event` == "Event occurred") ~ Fraction * Arm, data = subset_data)
+sm <- summary(fit_int)
+
+#p_int <- sm$coefficients["FractionHigh:ArmExperimental","Pr(>|z|)"]
+
+b <- coef(fit_int); V <- vcov(fit_int)
+
+lincomb <- function(L) {
+  logHR <- sum(L * b)
+  se    <- sqrt(as.numeric(t(L) %*% V %*% L))
+  z     <- logHR / se
+  p     <- 2 * pnorm(abs(z), lower.tail = FALSE)
+  tibble(HR = exp(logHR),
+         CI_low = exp(logHR - 1.96*se),
+         CI_high= exp(logHR + 1.96*se),
+         p_value = p)
+}
+
+L_ctrl <- c("FractionHigh"=1, "ArmExperimental"=0, "FractionHigh:ArmExperimental"=0)
+res_ctrl <- lincomb(L_ctrl) %>%
+  mutate(Arm = "Control",
+         label = sprintf("High vs Low: HR=%.2f (%.2f–%.2f), p=%.3f",
+                         HR, CI_low, CI_high, p_value))
+L_exp  <- c("FractionHigh"=1, "ArmExperimental"=0, "FractionHigh:ArmExperimental"=1)
+res_exp <- lincomb(L_exp) %>%
+  mutate(Arm = "Experimental",
+         label = sprintf("High vs Low: HR=%.2f (%.2f–%.2f), p=%.3f",
+                         HR, CI_low, CI_high, p_value))
+
+# HRs High vs low in control vs experimental 
+res_arm <- bind_rows(res_ctrl, res_exp)
+
+
+# Figure Supplemental 6E/6F ----
 subset_B7H6 <- IC_genes[IC_genes$timepoint == "T2", c("Mixture", "NCR3LG1", 
                                                       "Treatment Arm", "DFS Event", 
                                                       "DFS Time (Days)",
@@ -3629,13 +3768,9 @@ subset_B7H6_exp <- subset_B7H6_exp[!(is.na(subset_B7H6_exp$Mixture)), ]
 subset_B7H6_exp$B7H6_cat <- ifelse(subset_B7H6_exp$NCR3LG1 >= median(subset_B7H6_exp$NCR3LG1), 
                                    "High", "Low")
 
-# get genes associated with sensitivity and resistance to NK-cells
-nk_cells_genes <- read_excel("/Users/stefanotesta/Desktop/Majzner_lab/STS_CAR/TS5_B7H6.xlsx")
-nk_cells_gene_names <- c(nk_cells_genes$`Resistant genes`, 
-                         nk_cells_genes$`Sensitive genes`)
 
 NK_cell_data <- T1_T2_mixture %>% 
-  filter(Gene %in% nk_cells_gene_names)
+  filter(Gene %in% c("B2M", "HLA-E"))
 NK_cell_data <- t(NK_cell_data)
 NK_cell_data <- as.data.frame(NK_cell_data)
 colnames(NK_cell_data) <- NK_cell_data[1,]
@@ -3648,87 +3783,67 @@ NK_cell_data <- NK_cell_data %>%
          timepoint = str_extract(Mixture, "(?<=_).+"))
 
 subset_B7H6_exp <- subset_B7H6_exp %>% 
-  left_join(NK_cell_data[NK_cell_data$Mixture %in% subset_B7H6_exp$Mixture, ])
+  select(-c(timepoint, patient)) %>%
+  left_join(NK_cell_data[NK_cell_data$Mixture %in% subset_B7H6_exp$Mixture, ], 
+            join_by("Mixture"))
 
-for (resist in setdiff(unique(nk_cells_genes$`Resistant genes`), NA)) {
-  plot <- ggplot(subset_B7H6_exp, 
-                 aes(x = B7H6_cat, y = subset_B7H6_exp[[resist]], fill = B7H6_cat)) +
-    geom_violin(alpha=0.5, trim = F, scale = "width") + 
-    geom_boxplot(width = 0.1) + 
-    labs(title = paste(resist, "Expression in B7-H6 Low vs High"),
-         x = "B7-H6 Expression",
-         y = paste(resist, "Expression - Log2(TPM+1)")) +
-    theme_pubr(legend = "right") +
-    geom_signif(
-      comparisons = list(c("Low", "High"))
-    ) +
-    labs(fill = "B7-H6 Expression") + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_fill_manual(values = c("Low" = "#66bd63", "High" = "#f46d43")) 
-  
-  ggsave(plot, filename = paste(".../NK_cell_resistance/", resist, ".pdf"),
-         width = 6, height = 5, units = "in")
-}
-for (sens in setdiff(unique(nk_cells_genes$`Sensitive genes`), NA)) {
-  plot <- ggplot(subset_B7H6_exp, 
-                 aes(x = B7H6_cat, y = subset_B7H6_exp[[sens]], fill = B7H6_cat)) +
-    geom_violin(alpha=0.5, trim = F, scale = "width") + 
-    geom_boxplot(width = 0.1) + 
-    labs(title = paste(sens, "Expression in B7-H6 Low vs High"),
-         x = "B7-H6 Expression",
-         y = paste(sens, "Expression - Log2(TPM+1)")) +
-    theme_pubr(legend = "right") +
-    geom_signif(
-      comparisons = list(c("Low", "High"))
-    ) +
-    labs(fill = "B7-H6 Expression") + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_fill_manual(values = c("Low" = "#66bd63", "High" = "#f46d43")) 
-  
-  ggsave(plot, filename = paste(".../NK_cell_sensitivity/", sens, ".pdf"),
-         width = 6, height = 5, units = "in")
-}
+plot_B2M <- ggplot(subset_B7H6_exp, 
+               aes(x = B7H6_cat, y = B2M, fill = B7H6_cat)) +
+  geom_violin(alpha=0.5, trim = F, scale = "width") + 
+  geom_boxplot(width = 0.1, outliers = F) + 
+  labs(title = paste(resist, "Expression in B7-H6 Low vs High"),
+       x = "B7-H6 Expression",
+       y = paste(resist, "Expression - Log2(TPM+1)")) +
+  theme_pubr(legend = "right") +
+  geom_signif(
+    comparisons = list(c("Low", "High"))
+  ) +
+  labs(fill = "B7-H6 Expression") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_manual(values = c("Low" = "#66bd63", "High" = "#f46d43")) 
 
-resist_genes <- setdiff(unique(nk_cells_genes$`Resistant genes`), NA)
-sens_genes   <- setdiff(unique(nk_cells_genes$`Sensitive genes`),   NA)
-all_genes    <- unique(c(resist_genes, sens_genes))
+ggsave(plot_B2M, filename = '.../data//b2m.pdf',
+       width = 12.5, height = 10, units = "cm")
 
-avail_genes  <- intersect(all_genes, colnames(subset_B7H6_exp))
+plot_HLAE <- ggplot(subset_B7H6_exp, 
+                   aes(x = B7H6_cat, y = `HLA-E`, fill = B7H6_cat)) +
+  geom_violin(alpha=0.5, trim = F, scale = "width") + 
+  geom_boxplot(width = 0.1, outliers = F) + 
+  labs(title = paste(resist, "Expression in B7-H6 Low vs High"),
+       x = "B7-H6 Expression",
+       y = paste(resist, "Expression - Log2(TPM+1)")) +
+  theme_pubr(legend = "right") +
+  geom_signif(
+    comparisons = list(c("Low", "High"))
+  ) +
+  labs(fill = "B7-H6 Expression") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_manual(values = c("Low" = "#66bd63", "High" = "#f46d43")) 
 
-stats_df <- map_dfr(avail_genes, function(gene) {
-  x   <- subset_B7H6_exp[[gene]]
-  grp <- subset_B7H6_exp$B7H6_cat
-  ok <- !is.na(x) & !is.na(grp)
-  if(length(unique(grp[ok])) < 2) {
-    return(tibble(gene = gene,
-                  W_statistic = NA_real_,
-                  p.value     = NA_real_))
-  }
-  
-  wt <- wilcox.test(x[ok] ~ grp[ok], exact = FALSE)  
-  tibble(
-    gene        = gene,
-    W_statistic = as.numeric(wt$statistic),
-    p.value     = wt$p.value
-  )
-})
-
-stats_df <- stats_df %>%
-  mutate(p.adj = p.adjust(p.value, method = "BH"))
+ggsave(plot_HLAE, filename = '.../data//HLAE.pdf',
+       width = 12.5, height = 10, units = "cm")
 
 
+# Figure Supplemental 6G ----
+T_cell_GEP_genes <- c( "CD3D",  "IL2RG",
+                          "IDO1", "NKG7",
+                          "CIITA", "HLA-E",
+                          "CD3E", "CXCR6",
+                          "CCL5", "LAG3",
+                          "GZMK", "TAGAP",
+                          "CD2", "CXCL10",
+                          "HLA-DRA", "STAT1",
+                          "CXCL13", "GZMB")
 
+sample_annotation <- IC_genes[, c("Mixture", "timepoint", "Treatment Arm", "Sarcoma Immune Class")]
+#sample_annotation <- sample_annotation[!(is.na(sample_annotation$Arm)), ]
+sample_annotation <- sample_annotation[sample_annotation$`Sarcoma Immune Class` != "NA", ]
 
-# Figure Supplemental 5G ----
-sample_annotation <- signatures_avg_expr[, c("Sample", "Time_Point", "Arm", "Sarcoma Immune Class")]
-sample_annotation <- sample_annotation[!(is.na(sample_annotation$Arm)), ]
-sample_annotation <- sample_annotation[!(is.na(sample_annotation$`Sarcoma Immune Class`)), ]
-
-T1_T2_mixture_filtered <- T1_T2_mixture[T1_T2_mixture$Gene %in% unique(c(IFNy_expanded_genes)), ]
+T1_T2_mixture_filtered <- T1_T2_mixture[T1_T2_mixture$Gene %in% unique(c(T_cell_GEP_genes)), ]
 rownames(T1_T2_mixture_filtered) <- T1_T2_mixture_filtered$Gene
 T1_T2_mixture_filtered$Gene <- NULL
 
-T1_T2_mixture_filtered <- T1_T2_mixture_filtered[, colnames(T1_T2_mixture_filtered) %in% sample_annotation$Sample]
+T1_T2_mixture_filtered <- T1_T2_mixture_filtered[, colnames(T1_T2_mixture_filtered) %in% sample_annotation$Mixture]
 
 z_score_rows <- function(x) {
   t(apply(x, 1, function(row) {
@@ -3738,16 +3853,16 @@ z_score_rows <- function(x) {
 T1_T2_mixture_filtered_zscored <- z_score_rows(as.matrix(T1_T2_mixture_filtered))
 
 sample_annotation <- sample_annotation[match(colnames(T1_T2_mixture_filtered),
-                                             sample_annotation$Sample), ]
+                                             sample_annotation$Mixture), ]
 
-rownames(sample_annotation) <- sample_annotation$Sample
-sample_annotation$Sample <- NULL
+rownames(sample_annotation) <- sample_annotation$Mixture
+sample_annotation$Mixture <- NULL
 
 # Define a column annotation
 col_annotation <- HeatmapAnnotation(
   df = sample_annotation,
-  col = list(Time_Point = c("T1" = "#386cb0", "T2" = "#fdc086"), 
-             Arm = c("Experimental" = "#0093AF", "Control" = "#9E1C39"), 
+  col = list(timepoint = c("T1" = "#386cb0", "T2" = "#fdc086"), 
+             `Treatment Arm` = c("Experimental" = "#0093AF", "Control" = "#9E1C39"), 
              `Sarcoma Immune Class` = c("A" = "#1f78b4", "B" = "#a6cee3", "C" = "#33a02c", "D" = "#fdbf6f", "E" = "#e31a1c"))
 )
 
@@ -3784,16 +3899,17 @@ pdf(".../heatmap_arm_vs_timepoint_IFNG_sig_genes_SIC.pdf",
 draw(ht)
 dev.off()
 
-# Figure Supplemental 5H ----
-sample_annotation <- signatures_avg_expr[, c("Sample", "Time_Point", "Arm", "ecotype_assignment")]
-sample_annotation <- sample_annotation[!(is.na(sample_annotation$Arm)), ]
-sample_annotation <- sample_annotation[!(is.na(sample_annotation$`ecotype_assignment`)), ]
+# Figure Supplemental 6H ----
+sample_annotation <- IC_genes[, c("Sample", "Time_Point", "Arm", "Sarcoma Ecotype Assignment")]
+#sample_annotation <- sample_annotation[!(is.na(sample_annotation$Arm)), ]
+sample_annotation <- sample_annotation[sample_annotation$`Sarcoma Ecotype Assignment` != "NA", ]
 
-T1_T2_mixture_filtered <- T1_T2_mixture[T1_T2_mixture$Gene %in% unique(c(IFNy_expanded_genes)), ]
+T1_T2_mixture_filtered <- T1_T2_mixture[T1_T2_mixture$Gene %in% unique(c(T_cell_GEP_genes)), ]
 rownames(T1_T2_mixture_filtered) <- T1_T2_mixture_filtered$Gene
 T1_T2_mixture_filtered$Gene <- NULL
 
-T1_T2_mixture_filtered <- T1_T2_mixture_filtered[, colnames(T1_T2_mixture_filtered) %in% sample_annotation$Sample]
+T1_T2_mixture_filtered <- T1_T2_mixture_filtered[, colnames(T1_T2_mixture_filtered) %in% 
+                                                   sample_annotation$Mixture]
 
 z_score_rows <- function(x) {
   t(apply(x, 1, function(row) {
@@ -3803,21 +3919,21 @@ z_score_rows <- function(x) {
 T1_T2_mixture_filtered_zscored <- z_score_rows(as.matrix(T1_T2_mixture_filtered))
 
 sample_annotation <- sample_annotation[match(colnames(T1_T2_mixture_filtered),
-                                             sample_annotation$Sample), ]
+                                             sample_annotation$Mixture), ]
 
-rownames(sample_annotation) <- sample_annotation$Sample
-sample_annotation$Sample <- NULL
+rownames(sample_annotation) <- sample_annotation$Mixture
+sample_annotation$Mixture <- NULL
 
 # Define a column annotation
 col_annotation <- HeatmapAnnotation(
   df = sample_annotation,
-  col = list(Time_Point = c("T1" = "#386cb0", "T2" = "#fdc086"), 
-             Arm = c("Experimental" = "#0093AF", "Control" = "#9E1C39"), 
-             ecotype_assignment = c("E1" = "#F16280", "E2" = "#179ABE", "E3" = "#63C2A6"))
+  col = list(timepoint = c("T1" = "#386cb0", "T2" = "#fdc086"), 
+             `Treatment Arm` = c("Experimental" = "#0093AF", "Control" = "#9E1C39"), 
+             `Sarcoma Ecotype Assignment` = c("SE1" = "#F16280", "SE2" = "#179ABE", "SE3" = "#63C2A6"))
 )
 
 #annotation_vector <- sample_annotation$Arm
-annotation_vector <- sample_annotation$ecotype_assignment
+annotation_vector <- sample_annotation$`Sarcoma Ecotype Assignment`
 annotation_vector <- as.factor(annotation_vector)
 
 # Plot the heatmap
@@ -3850,16 +3966,14 @@ draw(ht)
 dev.off()
 
 # Figure 6H ----
-simpson_diversity <- fread('/Users/stefanotesta/Desktop/Moding Lab/SARC_32/Figures/last_draft/GitHub_data/gini_simpson.csv')
+simpson_diversity <- fread('...data/gini_simpson_diversity.csv')
 
-simpson_diversity <- simpson_diversity %>% 
-  mutate(
-    patient = sub("-T[12]", "", sample),
-    Time_Point = ifelse(grepl("-T1", sample), "T1", "T2")
-  )
+simpson_diversity$V1 <- NULL
 
 simpson_diversity <- simpson_diversity %>%
-  left_join(SIC_and_SE_assignments, by = c("patient" = "SRC code"))
+  left_join(SIC_and_SE_assignments, by = c("Sample" = "Patient"))
+
+ecotyper_palette = c("SE1" = "#F06180", "SE2" = "#0F9ABE", "SE3" = "#60C1A5")
 
 # Ecotype plot considering only Pre-treatment time point  
 simpson_diversity |> 
@@ -3884,7 +3998,7 @@ simpson_diversity |>
   adjust_x_axis_title(title = "Sarcoma Ecotypes", fontsize = 16) |>
   adjust_y_axis_title(title = "TCR Diversity (Gini-Simpson)", fontsize = 16) 
 
-# Figure Supplemental 5J ----
+# Figure Supplemental 6J ----
 simpson_diversity |> 
   filter(!is.na(`Sarcoma Immune Class`))|> 
   filter(`Sarcoma Immune Class` != "NA")|> 
@@ -3931,9 +4045,8 @@ time_arm <- simpson_diversity |>
   facet_wrap(~ `Treatment Arm`, scales = "free_x")
 
 
-
-# Flow Cytometry vs CIBERSORTx cell fractions correlation Figure S3 ----
-# Figure S3B ----
+# Flow Cytometry vs CIBERSORTx cell fractions correlation Figure S4 ----
+# Figure S4B ----
 #Total CD4 correlation 
 cd4_corr <- read.csv(file = '.../data/cd4_flow_corr.csv')
 cd4_cibersortx_homegrown <- ggscatter(cd4_corr, x = "Flow_CD3_CD4", y = "total_cibersort_cd4", 
@@ -3991,17 +4104,16 @@ total_myeloid_cibersortx_homegrown <- ggscatter(myeloid_corr, x = "Flow_myeloid"
 
 
 
-# Figure Supplemental 4A ----
+# Figure Supplemental 5A ----
+combined_rejoined_cpm_tr4_init$Mixture <- NULL
 cibersortx_long_cpm_tr4 <- melt(combined_rejoined_cpm_tr4_init, 
-                                id.vars = c("patient", "timepoint"),
+                                id.vars = c("patient_id", "timepoint"),
                                 variable.name = "Cell_Type", 
                                 value.name = "Value")
-colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "patient"] <- "Sample"
+colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "patient_id"] <- "Sample"
 colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "timepoint"] <- "Time_Point"
-cibersortx_long_cpm_tr4$Sample[cibersortx_long_cpm_tr4$Sample == "SRC77_b"] <- "SRC77"
 cibersortx_long_cpm_tr4 <- cibersortx_long_cpm_tr4 %>% 
-  left_join(sarc32_outcome, by = c("Sample" = "SRC"))
-cibersortx_long_cpm_tr4 <- cibersortx_long_cpm_tr4[!(cibersortx_long_cpm_tr4$Sample %in% "SRC102b"), ]
+  left_join(SIC_and_SE_assignments, by = c("Sample" = "Patient"))
 
 cibersortx_long_cpm_tr4$Cell_Type <- factor(cibersortx_long_cpm_tr4$Cell_Type)
 cibersortx_long_cpm_tr4$Sample <- factor(cibersortx_long_cpm_tr4$Sample)
@@ -4035,7 +4147,7 @@ row_annotation <- row_annotation %>%
       grepl("NK cells",    cells) ~ "NK cells",
       grepl("DCs",         cells) ~ "Dendritic cells",
       grepl("PMNs",        cells) ~ "PMNs",
-      grepl("Monocytes|M2", cells) ~ "Monocytes & Macrophages",
+      grepl("Monocytes|M2|Macro", cells) ~ "Monocytes & Macrophages",
       grepl("Mastocytes",  cells) ~ "Mastocytes",
       grepl("Pericytes",   cells) ~ "Pericytes",
       grepl("CAF",         cells) ~ "CAFs",
@@ -4064,12 +4176,12 @@ column_annotation <- column_annotation %>%
          patient = str_extract(samples, "^[^_]+"))
 
 column_annotation$Arm <- NA
-column_annotation$Arm[column_annotation$patient %in% cibersortx_long_cpm_tr4[cibersortx_long_cpm_tr4$Arm == "Experimental", ]$Sample] <- "Experimental"
+column_annotation$Arm[column_annotation$patient %in% cibersortx_long_cpm_tr4[cibersortx_long_cpm_tr4$`Treatment Arm` == "Experimental", ]$Sample] <- "Experimental"
 column_annotation$Arm[is.na(column_annotation$Arm)] <- "Control"
 
 column_annotation <- column_annotation %>% 
-  left_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Immune Class", 
-                               "Tumor Grade")], by = c("patient" = "SRC code")) 
+  left_join(SIC_and_SE_assignments[, c("Patient", "Sarcoma Immune Class", 
+                               "Tumor Grade")], by = c("patient" = "Patient")) 
 
 column_annotation$`Sarcoma Immune Class`[is.na(column_annotation$`Sarcoma Immune Class`)] <- "Unassigned"
 column_annotation <- column_to_rownames(column_annotation, var = "samples")
@@ -4121,17 +4233,15 @@ pdf('/.../scaled_T1_absolute_fractions.pdf', width = w, height = h)
 draw(ht)
 dev.off()
 
-# Figure Supplemental 4B -----
+# Figure Supplemental 5B -----
 cibersortx_long_cpm_tr4 <- melt(combined_rejoined_cpm_tr4_init, 
-                                id.vars = c("patient", "timepoint"),
+                                id.vars = c("patient_id", "timepoint"),
                                 variable.name = "Cell_Type", 
                                 value.name = "Value")
-colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "patient"] <- "Sample"
+colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "patient_id"] <- "Sample"
 colnames(cibersortx_long_cpm_tr4)[colnames(cibersortx_long_cpm_tr4) == "timepoint"] <- "Time_Point"
-cibersortx_long_cpm_tr4$Sample[cibersortx_long_cpm_tr4$Sample == "SRC77_b"] <- "SRC77"
 cibersortx_long_cpm_tr4 <- cibersortx_long_cpm_tr4 %>% 
-  left_join(sarc32_outcome, by = c("Sample" = "SRC"))
-cibersortx_long_cpm_tr4 <- cibersortx_long_cpm_tr4[!(cibersortx_long_cpm_tr4$Sample %in% "SRC102b"), ]
+  left_join(SIC_and_SE_assignments, by = c("Sample" = "Patient"))
 
 cibersortx_long_cpm_tr4$Cell_Type <- factor(cibersortx_long_cpm_tr4$Cell_Type)
 cibersortx_long_cpm_tr4$Sample <- factor(cibersortx_long_cpm_tr4$Sample)
@@ -4165,7 +4275,7 @@ row_annotation <- row_annotation %>%
       grepl("NK cells",    cells) ~ "NK cells",
       grepl("DCs",         cells) ~ "Dendritic cells",
       grepl("PMNs",        cells) ~ "PMNs",
-      grepl("Monocytes|M2", cells) ~ "Monocytes & Macrophages",
+      grepl("Monocytes|M2|Macro", cells) ~ "Monocytes & Macrophages",
       grepl("Mastocytes",  cells) ~ "Mastocytes",
       grepl("Pericytes",   cells) ~ "Pericytes",
       grepl("CAF",         cells) ~ "CAFs",
@@ -4190,13 +4300,14 @@ column_annotation <- data.frame(samples = colnames(scaled_data_T1))
 column_annotation <- column_annotation %>%
   mutate(timepoint = str_extract(samples, "(?<=_).+"), 
          patient = str_extract(samples, "^[^_]+"))
+
 column_annotation$Arm <- NA
-column_annotation$Arm[column_annotation$patient %in% cibersortx_long_cpm_tr4[cibersortx_long_cpm_tr4$Arm == "Experimental", ]$Sample] <- "Experimental"
+column_annotation$Arm[column_annotation$patient %in% cibersortx_long_cpm_tr4[cibersortx_long_cpm_tr4$`Treatment Arm` == "Experimental", ]$Sample] <- "Experimental"
 column_annotation$Arm[is.na(column_annotation$Arm)] <- "Control"
 
 column_annotation <- column_annotation %>% 
-  left_join(SIC_and_SE_assignments[, c("SRC code", "Sarcoma Ecotype Assignment", 
-                               "Tumor Grade")], by = c("patient" = "SRC code")) 
+  left_join(SIC_and_SE_assignments[, c("Patient", "Sarcoma Ecotype Assignment", 
+                               "Tumor Grade")], by = c("patient" = "Patient")) 
 
 column_annotation$ecotype_assignment <- column_annotation$`Sarcoma Ecotype Assignment`
 
@@ -4247,3 +4358,5 @@ h = convertY(h, "inch", valueOnly = TRUE)
 pdf('.../scaled_T1_absolute_fractions_EcoTyper.pdf', width = w, height = h)
 draw(ht)
 dev.off()
+
+
