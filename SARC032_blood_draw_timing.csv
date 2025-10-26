@@ -1,0 +1,571 @@
+"Subject","collection_time_point","time_from_enrollment_to_blood_draw_days"
+"001-004","Prior to surgery",64
+"001-004","Final Sample",406
+"001-004","30 days post-cycle 6 (3 months after surgery)",154
+"001-004","Prior to Cycle 2 (before week 3 of radiotherapy)",22
+"001-004","Baseline",1
+"001-014","Prior to Cycle 2 (before week 3 of radiotherapy)",45
+"001-014","Prior to surgery",81
+"001-014","Final Sample",444
+"001-014","30 days post-cycle 6 (3 months after surgery)",221
+"001-014","Baseline",3
+"001-017","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"001-017","Prior to surgery",65
+"001-017","Baseline",2
+"001-023","30 days post-cycle 6 (3 months after surgery)",157
+"001-023","Prior to surgery",71
+"001-023","Prior to Cycle 2 (before week 3 of radiotherapy)",22
+"001-023","Baseline",6
+"001-030","Final Sample",485
+"001-030","30 days post-cycle 6 (3 months after surgery)",161
+"001-030","Prior to surgery",72
+"001-030","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"001-030","Baseline",2
+"001-038","Prior to surgery",77
+"001-038","Prior to Cycle 2 (before week 3 of radiotherapy)",30
+"001-038","Final Sample",442
+"001-038","30 days post-cycle 6 (3 months after surgery)",169
+"001-038","Baseline",9
+"001-041","30 days post-cycle 6 (3 months after surgery)",168
+"001-041","Prior to surgery",63
+"001-041","Prior to Cycle 2 (before week 3 of radiotherapy)",34
+"001-041","Baseline",5
+"001-041","Final Sample",413
+"001-066","Baseline",0
+"001-066","Prior to surgery",74
+"001-066","Final Sample",439
+"001-067","Prior to Cycle 2 (before week 3 of radiotherapy)",31
+"001-067","Baseline",0
+"001-067","Prior to surgery",81
+"001-074","Prior to surgery",71
+"001-074","Prior to Cycle 2 (before week 3 of radiotherapy)",31
+"001-074","30 days post-cycle 6 (3 months after surgery)",177
+"001-074","Final Sample",450
+"001-076","Baseline",0
+"001-076","30 days post-cycle 6 (3 months after surgery)",163
+"001-089","Prior to Cycle 2 (before week 3 of radiotherapy)",29
+"001-089","Prior to surgery",63
+"001-089","30 days post-cycle 6 (3 months after surgery)",168
+"001-101","Prior to Cycle 2 (before week 3 of radiotherapy)",14
+"001-101","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"001-101","Prior to surgery",84
+"001-101","Baseline",7
+"001-115","Baseline",0
+"001-115","Prior to surgery",76
+"001-115","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"001-128","Prior to Cycle 2 (before week 3 of radiotherapy)",8
+"001-128","Prior to surgery",79
+"001-128","30 days post-cycle 6 (3 months after surgery)",203
+"001-128","Baseline",1
+"002-083","Unscheduled",14
+"002-083","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"002-083","Final Sample",448
+"002-083","30 days post-cycle 6 (3 months after surgery)",162
+"002-083","Prior to surgery",71
+"002-083","Baseline",6
+"004-005","Baseline",6
+"004-040","30 days post-cycle 6 (3 months after surgery)",190
+"004-040","Prior to surgery",78
+"004-040","Prior to Cycle 2 (before week 3 of radiotherapy)",26
+"004-040","Baseline",5
+"004-045","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"004-045","Baseline",3
+"004-045","Prior to surgery",86
+"004-045","30 days post-cycle 6 (3 months after surgery)",178
+"004-058","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"004-058","Prior to surgery",78
+"004-058","Final Sample",555
+"004-058","Baseline",9
+"004-090","Baseline",2
+"004-090","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"004-107","Baseline",4
+"004-110","Baseline",6
+"004-110","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"004-112","Prior to Cycle 2 (before week 3 of radiotherapy)",9
+"004-112","Baseline",3
+"005-007","Final Sample",427
+"005-007","30 days post-cycle 6 (3 months after surgery)",161
+"005-007","Prior to surgery",69
+"005-007","Prior to Cycle 2 (before week 3 of radiotherapy)",20
+"005-007","Baseline",6
+"005-013","Baseline",7
+"005-013","30 days post-cycle 6 (3 months after surgery)",175
+"005-013","Prior to surgery",73
+"005-013","Final Sample",469
+"005-013","Prior to Cycle 2 (before week 3 of radiotherapy)",31
+"005-013","Final Sample",383
+"005-015","30 days post-cycle 6 (3 months after surgery)",149
+"005-015","Prior to surgery",71
+"005-015","Baseline",6
+"005-015","Prior to Cycle 2 (before week 3 of radiotherapy)",16
+"005-027","Final Sample",438
+"005-027","30 days post-cycle 6 (3 months after surgery)",157
+"005-027","Prior to surgery",63
+"005-027","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"005-027","Baseline",18
+"005-027","Baseline",3
+"005-048","Baseline",4
+"005-048","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"005-109","Baseline",-7
+"005-109","Prior to surgery",55
+"005-109","30 days post-cycle 6 (3 months after surgery)",136
+"005-111","Baseline",2
+"005-111","Prior to surgery",64
+"005-111","30 days post-cycle 6 (3 months after surgery)",164
+"005-113","Prior to surgery",56
+"005-113","Baseline",6
+"005-135","Baseline",6
+"015-002","Final Sample",534
+"015-002","30 days post-cycle 6 (3 months after surgery)",207
+"015-002","Prior to surgery",87
+"015-002","Prior to Cycle 2 (before week 3 of radiotherapy)",38
+"015-002","Baseline",18
+"015-028","Baseline",2
+"015-028","30 days post-cycle 6 (3 months after surgery)",170
+"015-028","Prior to surgery",77
+"015-028","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"016-043","30 days post-cycle 6 (3 months after surgery)",183
+"016-043","Prior to surgery",64
+"016-043","Prior to Cycle 2 (before week 3 of radiotherapy)",36
+"016-043","Baseline",19
+"016-053","Baseline",15
+"016-053","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"016-095","Prior to surgery",83
+"016-095","Baseline",7
+"016-095","Final Sample",489
+"016-098","Prior to Cycle 2 (before week 3 of radiotherapy)",15
+"016-098","Unscheduled",22
+"016-098","Baseline",6
+"016-098","Prior to surgery",85
+"016-104","Baseline",5
+"016-104","Unscheduled",13
+"016-104","Prior to Cycle 2 (before week 3 of radiotherapy)",27
+"016-104","Prior to surgery",80
+"016-104","30 days post-cycle 6 (3 months after surgery)",188
+"016-114","Prior to Cycle 2 (before week 3 of radiotherapy)",15
+"016-114","Baseline",1
+"016-114","Prior to surgery",77
+"016-116","Baseline",1
+"016-116","Prior to Cycle 2 (before week 3 of radiotherapy)",17
+"016-116","Prior to surgery",65
+"016-116","30 days post-cycle 6 (3 months after surgery)",188
+"022-012","Prior to surgery",70
+"022-012","30 days post-cycle 6 (3 months after surgery)",157
+"022-012","Baseline",0
+"022-012","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"022-012","Baseline",14
+"022-025","Prior to surgery",84
+"022-025","Baseline",0
+"022-025","Prior to Cycle 2 (before week 3 of radiotherapy)",30
+"022-025","30 days post-cycle 6 (3 months after surgery)",175
+"022-026","Baseline",17
+"022-026","30 days post-cycle 6 (3 months after surgery)",171
+"022-026","Prior to surgery",84
+"022-026","Prior to Cycle 2 (before week 3 of radiotherapy)",42
+"022-031","Baseline",0
+"022-032","30 days post-cycle 6 (3 months after surgery)",188
+"022-032","Prior to surgery",83
+"022-032","Prior to Cycle 2 (before week 3 of radiotherapy)",37
+"022-032","Baseline",16
+"022-032","Baseline",6
+"022-032","Final Sample",457
+"022-039","Baseline",0
+"022-044","Final Sample",447
+"022-044","30 days post-cycle 6 (3 months after surgery)",167
+"022-044","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"022-044","Prior to surgery",62
+"022-044","Baseline",5
+"022-046","Final Sample",472
+"022-046","Baseline",0
+"022-046","Prior to Cycle 2 (before week 3 of radiotherapy)",29
+"022-046","Prior to surgery",80
+"022-046","30 days post-cycle 6 (3 months after surgery)",199
+"022-059","Prior to surgery",77
+"022-059","Final Sample",441
+"022-059","30 days post-cycle 6 (3 months after surgery)",168
+"022-059","Baseline",6
+"022-059","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"022-065","Prior to Cycle 2 (before week 3 of radiotherapy)",29
+"022-065","Baseline",0
+"022-105","Baseline",0
+"022-105","Prior to Cycle 2 (before week 3 of radiotherapy)",12
+"022-105","Prior to surgery",25
+"022-127","Prior to surgery",87
+"022-127","Baseline",18
+"022-127","Prior to Cycle 2 (before week 3 of radiotherapy)",26
+"022-152","Prior to Cycle 2 (before week 3 of radiotherapy)",17
+"029-020","30 days post-cycle 6 (3 months after surgery)",135
+"029-020","Prior to surgery",65
+"029-020","Unscheduled",45
+"029-020","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"029-020","Baseline",2
+"029-021","Baseline",4
+"029-021","Final Sample",416
+"029-021","Prior to surgery",74
+"029-021","30 days post-cycle 6 (3 months after surgery)",178
+"029-021","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"029-033","Baseline",6
+"029-033","Prior to surgery",75
+"029-033","Prior to Cycle 2 (before week 3 of radiotherapy)",27
+"029-033","30 days post-cycle 6 (3 months after surgery)",152
+"029-099","Baseline",16
+"034-137","Final Sample",446
+"034-137","Prior to Cycle 2 (before week 3 of radiotherapy)",32
+"034-137","Prior to surgery",63
+"034-137","Baseline",13
+"034-137","30 days post-cycle 6 (3 months after surgery)",166
+"048-016","30 days post-cycle 6 (3 months after surgery)",164
+"048-016","Prior to surgery",60
+"048-016","Prior to Cycle 2 (before week 3 of radiotherapy)",17
+"048-016","Baseline",3
+"048-022","Final Sample",458
+"048-022","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"048-022","Baseline",3
+"048-022","30 days post-cycle 6 (3 months after surgery)",171
+"048-022","Prior to surgery",78
+"048-035","Baseline",2
+"048-035","Prior to surgery",84
+"048-035","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"048-035","30 days post-cycle 6 (3 months after surgery)",184
+"048-082","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"048-082","Unscheduled",18
+"048-082","Baseline",3
+"048-082","Prior to surgery",74
+"048-119","Baseline",7
+"048-119","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"048-119","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"048-119","Prior to surgery",77
+"048-119","30 days post-cycle 6 (3 months after surgery)",164
+"051-057","Final Sample",456
+"051-057","Baseline",5
+"051-057","Prior to Cycle 2 (before week 3 of radiotherapy)",50
+"051-057","30 days post-cycle 6 (3 months after surgery)",182
+"051-057","Prior to surgery",82
+"051-060","Baseline",14
+"051-060","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"051-060","30 days post-cycle 6 (3 months after surgery)",182
+"051-060","Prior to surgery",85
+"051-060","Final Sample",446
+"051-077","Prior to surgery",71
+"051-077","Baseline",14
+"051-087","Baseline",7
+"051-087","Unscheduled",16
+"051-087","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"051-092","Baseline",12
+"051-092","Unscheduled",28
+"051-092","Prior to surgery",84
+"051-092","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"051-094","30 days post-cycle 6 (3 months after surgery)",173
+"051-094","Baseline",0
+"051-094","Unscheduled",14
+"051-094","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"051-094","Prior to surgery",63
+"071-003","Final Sample",441
+"071-003","30 days post-cycle 6 (3 months after surgery)",161
+"071-003","Prior to surgery",77
+"071-003","Prior to Cycle 2 (before week 3 of radiotherapy)",36
+"071-003","Baseline",12
+"071-009","Prior to Cycle 2 (before week 3 of radiotherapy)",27
+"071-009","Baseline",4
+"071-009","Final Sample",433
+"071-009","30 days post-cycle 6 (3 months after surgery)",160
+"071-009","Prior to surgery",69
+"071-034","Final Sample",143
+"071-034","Prior to surgery",67
+"071-034","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"071-034","Baseline",2
+"071-073","Final Sample",272
+"071-073","Baseline",-1
+"071-073","Prior to surgery",13
+"071-073","30 days post-cycle 6 (3 months after surgery)",118
+"076-068","Final Sample",445
+"076-068","30 days post-cycle 6 (3 months after surgery)",170
+"076-068","Prior to surgery",77
+"076-068","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"076-068","Baseline",7
+"076-102","Baseline",6
+"076-102","Prior to surgery",99
+"076-102","30 days post-cycle 6 (3 months after surgery)",201
+"076-146","Prior to Cycle 2 (before week 3 of radiotherapy)",29
+"076-146","Prior to surgery",95
+"076-146","30 days post-cycle 6 (3 months after surgery)",182
+"076-146","Final Sample",460
+"076-146","Baseline",7
+"091-006","Final Sample",350
+"091-006","30 days post-cycle 6 (3 months after surgery)",178
+"091-006","Prior to surgery",79
+"091-006","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"091-006","Baseline",3
+"091-010","Baseline",-1
+"091-010","Final Sample",399
+"091-010","30 days post-cycle 6 (3 months after surgery)",172
+"091-010","Prior to surgery",82
+"091-010","Prior to Cycle 2 (before week 3 of radiotherapy)",20
+"091-018","Baseline",2
+"091-018","Unscheduled",227
+"091-018","Prior to surgery",80
+"091-018","30 days post-cycle 6 (3 months after surgery)",156
+"091-054","30 days post-cycle 6 (3 months after surgery)",173
+"091-054","Baseline",4
+"091-054","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"091-054","Prior to surgery",91
+"091-055","Prior to surgery",70
+"091-055","Baseline",2
+"091-055","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"091-055","30 days post-cycle 6 (3 months after surgery)",164
+"092-001","Baseline",3
+"092-001","Prior to surgery",65
+"092-001","Prior to surgery",44
+"092-001","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"092-008","30 days post-cycle 6 (3 months after surgery)",169
+"092-008","Prior to surgery",78
+"092-008","Prior to Cycle 2 (before week 3 of radiotherapy)",19
+"092-008","Baseline",-1
+"092-037","Prior to surgery",77
+"092-037","Prior to Cycle 2 (before week 3 of radiotherapy)",34
+"092-037","Final Sample",441
+"092-037","Baseline",6
+"092-037","30 days post-cycle 6 (3 months after surgery)",170
+"092-049","Prior to surgery",63
+"092-049","Prior to Cycle 2 (before week 3 of radiotherapy)",20
+"092-049","Baseline",0
+"092-124","Baseline",4
+"092-124","Unscheduled",13
+"092-124","Prior to Cycle 2 (before week 3 of radiotherapy)",26
+"092-124","Prior to surgery",73
+"092-124","30 days post-cycle 6 (3 months after surgery)",158
+"092-126","Prior to surgery",77
+"092-126","30 days post-cycle 6 (3 months after surgery)",164
+"092-126","Final Sample",253
+"092-126","Prior to Cycle 2 (before week 3 of radiotherapy)",31
+"092-126","Unscheduled",15
+"092-126","Baseline",8
+"092-140","Baseline",13
+"092-140","Unscheduled",20
+"092-140","Prior to Cycle 2 (before week 3 of radiotherapy)",27
+"092-140","30 days post-cycle 6 (3 months after surgery)",163
+"092-140","Final Sample",444
+"092-140","Prior to surgery",51
+"092-142","Baseline",11
+"092-142","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"092-142","30 days post-cycle 6 (3 months after surgery)",168
+"092-142","Unscheduled",18
+"092-142","Prior to surgery",54
+"092-142","Final Sample",440
+"092-144","Unscheduled",11
+"092-144","Prior to Cycle 2 (before week 3 of radiotherapy)",26
+"092-144","Prior to surgery",70
+"092-144","30 days post-cycle 6 (3 months after surgery)",166
+"092-144","Final Sample",447
+"092-144","Baseline",5
+"801-042","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"801-042","30 days post-cycle 6 (3 months after surgery)",167
+"801-042","Prior to surgery",69
+"801-042","Baseline",8
+"801-088","Baseline",9
+"801-088","Prior to surgery",72
+"801-088","Unscheduled",23
+"801-088","Prior to Cycle 2 (before week 3 of radiotherapy)",29
+"801-097","Baseline",5
+"801-097","30 days post-cycle 6 (3 months after surgery)",163
+"801-097","Unscheduled",15
+"801-097","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"801-097","Prior to surgery",71
+"801-129","Prior to surgery",90
+"801-129","30 days post-cycle 6 (3 months after surgery)",170
+"801-129","Final Sample",272
+"801-129","Prior to Cycle 2 (before week 3 of radiotherapy)",29
+"801-129","Unscheduled",20
+"801-129","Baseline",1
+"801-141","Prior to surgery",97
+"801-141","Unscheduled",22
+"801-141","Baseline",6
+"801-141","Prior to Cycle 2 (before week 3 of radiotherapy)",14
+"801-151","Baseline",6
+"801-151","Unscheduled",14
+"801-151","Prior to Cycle 2 (before week 3 of radiotherapy)",34
+"801-151","30 days post-cycle 6 (3 months after surgery)",181
+"801-151","Final Sample",433
+"802-019","Prior to surgery",92
+"802-019","Prior to Cycle 2 (before week 3 of radiotherapy)",29
+"802-019","Final Sample",477
+"802-019","30 days post-cycle 6 (3 months after surgery)",181
+"802-019","Baseline",8
+"802-050","30 days post-cycle 6 (3 months after surgery)",168
+"802-050","Final Sample",451
+"802-050","Prior to Cycle 2 (before week 3 of radiotherapy)",35
+"802-050","Prior to surgery",79
+"802-050","Baseline",14
+"802-051","Baseline",9
+"802-051","Prior to Cycle 2 (before week 3 of radiotherapy)",30
+"802-051","Final Sample",364
+"802-051","Prior to surgery",58
+"802-051","30 days post-cycle 6 (3 months after surgery)",164
+"802-052","Prior to surgery",81
+"802-052","Final Sample",456
+"802-052","Baseline",7
+"802-052","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"802-052","30 days post-cycle 6 (3 months after surgery)",175
+"802-056","30 days post-cycle 6 (3 months after surgery)",156
+"802-056","Baseline",13
+"802-056","Prior to Cycle 2 (before week 3 of radiotherapy)",27
+"802-056","Prior to surgery",51
+"802-056","Final Sample",434
+"802-062","Baseline",0
+"802-062","Unscheduled",14
+"802-062","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"802-062","Prior to surgery",84
+"802-062","30 days post-cycle 6 (3 months after surgery)",184
+"802-062","Final Sample",465
+"802-063","Prior to Cycle 2 (before week 3 of radiotherapy)",36
+"802-063","Prior to surgery",80
+"802-063","30 days post-cycle 6 (3 months after surgery)",178
+"802-063","Baseline",14
+"802-063","Unscheduled",22
+"802-063","Final Sample",457
+"802-070","Baseline",2
+"802-070","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"802-070","Prior to Cycle 2 (before week 3 of radiotherapy)",66
+"802-070","30 days post-cycle 6 (3 months after surgery)",164
+"802-070","Final Sample",430
+"802-070","Unscheduled",16
+"802-071","Prior to surgery",52
+"802-071","Unscheduled",9
+"802-071","Baseline",0
+"802-071","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"802-071","30 days post-cycle 6 (3 months after surgery)",150
+"802-075","Unscheduled",14
+"802-075","Prior to Cycle 2 (before week 3 of radiotherapy)",17
+"802-075","Prior to surgery",31
+"802-075","30 days post-cycle 6 (3 months after surgery)",143
+"802-075","Final Sample",416
+"802-075","Baseline",6
+"802-078","Baseline",8
+"802-078","Unscheduled",15
+"802-078","Prior to Cycle 2 (before week 3 of radiotherapy)",22
+"802-078","Prior to surgery",67
+"802-078","30 days post-cycle 6 (3 months after surgery)",158
+"802-079","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"802-079","Prior to surgery",51
+"802-079","30 days post-cycle 6 (3 months after surgery)",156
+"802-079","Baseline",9
+"802-079","Unscheduled",16
+"802-080","30 days post-cycle 6 (3 months after surgery)",170
+"802-080","Final Sample",457
+"802-080","Baseline",1
+"802-080","Unscheduled",13
+"802-080","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"802-080","Prior to surgery",71
+"802-081","Baseline",8
+"802-081","Unscheduled",15
+"802-081","Prior to Cycle 2 (before week 3 of radiotherapy)",22
+"802-081","Prior to surgery",75
+"802-081","30 days post-cycle 6 (3 months after surgery)",175
+"802-085","Baseline",10
+"802-085","Prior to surgery",69
+"802-085","30 days post-cycle 6 (3 months after surgery)",159
+"802-085","Unscheduled",18
+"802-085","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"802-086","Baseline",9
+"802-086","Unscheduled",16
+"802-086","Prior to Cycle 2 (before week 3 of radiotherapy)",23
+"802-086","Prior to surgery",56
+"802-086","30 days post-cycle 6 (3 months after surgery)",175
+"802-086","Final Sample",441
+"802-096","Baseline",7
+"802-096","Prior to surgery",74
+"802-096","30 days post-cycle 6 (3 months after surgery)",182
+"802-096","Final Sample",466
+"802-096","Unscheduled",13
+"802-096","Prior to Cycle 2 (before week 3 of radiotherapy)",27
+"802-100","Baseline",9
+"802-100","Prior to Cycle 2 (before week 3 of radiotherapy)",48
+"802-100","Prior to surgery",77
+"802-103","Baseline",22
+"802-103","Prior to Cycle 2 (before week 3 of radiotherapy)",33
+"802-103","Prior to surgery",90
+"802-103","30 days post-cycle 6 (3 months after surgery)",189
+"802-103","Final Sample",470
+"802-108","Baseline",8
+"802-108","Unscheduled",16
+"802-108","Prior to Cycle 2 (before week 3 of radiotherapy)",42
+"802-108","Prior to surgery",86
+"802-117","Prior to surgery",69
+"802-117","Baseline",7
+"802-117","Unscheduled",16
+"802-117","Prior to Cycle 2 (before week 3 of radiotherapy)",22
+"802-117","30 days post-cycle 6 (3 months after surgery)",225
+"802-117","Final Sample",401
+"802-120","Unscheduled",19
+"802-120","Prior to Cycle 2 (before week 3 of radiotherapy)",25
+"802-120","Baseline",10
+"802-120","Prior to surgery",68
+"802-120","30 days post-cycle 6 (3 months after surgery)",189
+"802-121","Baseline",9
+"802-121","Unscheduled",16
+"802-121","Prior to Cycle 2 (before week 3 of radiotherapy)",30
+"802-121","Prior to surgery",66
+"802-121","30 days post-cycle 6 (3 months after surgery)",197
+"802-122","Unscheduled",14
+"802-122","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"802-122","Prior to surgery",59
+"802-122","30 days post-cycle 6 (3 months after surgery)",170
+"802-122","Final Sample",380
+"802-122","Baseline",3
+"802-130","Baseline",4
+"802-130","Prior to Cycle 2 (before week 3 of radiotherapy)",16
+"802-130","Prior to surgery",65
+"802-130","30 days post-cycle 6 (3 months after surgery)",263
+"802-130","Final Sample",529
+"802-132","Unscheduled",29
+"802-132","Prior to surgery",45
+"802-132","Baseline",13
+"802-132","Prior to Cycle 2 (before week 3 of radiotherapy)",22
+"802-138","Prior to Cycle 2 (before week 3 of radiotherapy)",28
+"802-138","Prior to surgery",56
+"802-138","Baseline",1
+"802-138","Unscheduled",21
+"802-139","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"802-139","Prior to surgery",54
+"802-139","Unscheduled",17
+"802-139","Baseline",10
+"802-143","Baseline",11
+"802-143","Prior to Cycle 2 (before week 3 of radiotherapy)",17
+"802-143","Prior to surgery",70
+"802-143","30 days post-cycle 6 (3 months after surgery)",179
+"802-143","Unscheduled",24
+"802-148","Prior to Cycle 2 (before week 3 of radiotherapy)",24
+"802-148","Prior to surgery",67
+"802-148","30 days post-cycle 6 (3 months after surgery)",175
+"802-148","Baseline",4
+"802-148","Unscheduled",11
+"802-149","Baseline",9
+"802-149","Prior to surgery",50
+"802-149","Prior to Cycle 2 (before week 3 of radiotherapy)",16
+"802-149","Unscheduled",30
+"802-150","Baseline",9
+"802-150","Prior to Cycle 2 (before week 3 of radiotherapy)",15
+"802-150","Unscheduled",28
+"802-150","Prior to surgery",58
+"802-150","30 days post-cycle 6 (3 months after surgery)",166
+"802-153","Unscheduled",14
+"802-153","Prior to Cycle 2 (before week 3 of radiotherapy)",21
+"802-153","Prior to surgery",41
+"802-153","30 days post-cycle 6 (3 months after surgery)",139
+"802-153","Baseline",7
+"803-029","Baseline",3
+"803-029","Final Sample",363
+"803-029","30 days post-cycle 6 (3 months after surgery)",160
+"803-029","Prior to surgery",62
+"803-029","Prior to Cycle 2 (before week 3 of radiotherapy)",11
+"803-061","Baseline",6
+"803-069","Baseline",2
+"803-069","Prior to Cycle 2 (before week 3 of radiotherapy)",14
+"803-069","Prior to surgery",66
+"803-069","30 days post-cycle 6 (3 months after surgery)",175
+"803-069","Final Sample",443
+"803-072","Baseline",4
+"803-072","Prior to Cycle 2 (before week 3 of radiotherapy)",26
+"803-072","30 days post-cycle 6 (3 months after surgery)",165
+"803-072","Prior to surgery",67
+"803-072","Final Sample",417
