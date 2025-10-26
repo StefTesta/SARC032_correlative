@@ -1,2 +1,2 @@
 # SARC032_correlative
-Analysis code repository for the SU2C-SARC032 correlative analysis manuscript.
+This repository containes the code and basic data necessary to reproduce the analysis and the figures of the SU2C-SARC032 Correlative Analyses manuscript.
